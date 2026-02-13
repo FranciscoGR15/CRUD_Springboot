@@ -1,0 +1,21 @@
+
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Calculadora</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>
+        
+            <h1>Operaciones</h1>
+            <p>Numero 1: <span th:text = "${n1}">0</span></p>
+            <p>Numero 2: <span th:text = "${n2}">0</span></p>
+            
+            <p>La suma es: <span th:text = "${suma}"></span></p>
+            <p>La resta es: <span th:text = "${resta}"></span></p>
+            <p>La multiplicacion es: <span th:text = "${mutiplicacion}"></span></p>
+            <p>La division es: <span th:text = "${division}"></span></p>
+        </div>
+    </body>
+</html>
