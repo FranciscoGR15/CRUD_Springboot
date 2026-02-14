@@ -24,11 +24,19 @@
                         <label for="valNombre" class="form-label">Ingresa el Nombre</label>
                         <input id="NombreUsuario" type="text" class="form-control" placeholder="Nombre" th:field="*{nombre}" onkeypress="SoloLetras(this, event)" onblur="SoloLetrasBlur(this)">
                         <span id="errorNombreUsuario" class="text-danger"></span>
+                        <span class="text-danger"
+                              th:if="${#fields.hasErrors('nombre')}"
+                              th:errors="*{nombre}">
+                        </span>
                     </div>
                     <div class="col-12 col-sm-6 col-md-3">
                         <label for="valApellido" class="form-label">Apellido Paterno</label>
                         <input id="ApellidoPaterno" type="text" class="form-control" placeholder="Apellido Paterno" th:field="*{apellidoPaterno}" onkeypress="SoloLetras(this, event)" onblur="SoloLetrasBlur(this)">
                         <span id="errorApellidoPaterno" class="text-danger"></span>
+                        <span class="text-danger"
+                              th:if="${#fields.hasErrors('apellidoPaterno')}"
+                              th:errors="*{apellidoPaterno}">
+                        </span>
                     </div>
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label">Ingresa el Apellido Materno</label>
@@ -37,27 +45,30 @@
                     </div>
                     <div class="col-12 col-sm-6 col-md-2">
                         <label for="exampleDateInput" class="form-label">Seleccionad tu Fecha</label>
-                        <input type="date" class="form-control" id="exampleDateInput" th:field="*{fechaNacimiento}" onkeydown="return false" min="1900-01-01" max="2008-01-01">
+                        <input id="FechaN" type="date" class="form-control" th:field="*{fechaNacimiento}" onkeydown="return false" min="1900-01-01" max="2008-01-01">
+                        <span id="errorFechaN" class="text-danger"></span>
                     </div>
                     <div class="col-12 col-sm-6 col-md-2">
                         <label class="form-label">Ingresa el UserName</label>
                         <input id="UserName" type="text" class="form-control" placeholder="UserName" th:field="*{userName}" onkeypress="SoloLetrasNumeros(this, event)" onblur="SoloLetrasNumerosBlur(this)">
                         <span id="errorUserName" class="text-danger"></span>
-                        ´</div>
+                    </div>
                     <div class="col-12 col-sm-6 col-md-4">
                         <label class="form-label">Ingresa el Email</label>
-                        <input type="email" class="form-control" placeholder="nombre@ejemplo.com" th:field="*{email}" required>
+                        <input id="Email" type="email" class="form-control" placeholder="nombre@ejemplo.com" th:field="*{email}" onblur="CorreoBlur(this)">
+                        <span id="errorEmail" class="text-danger"></span>
                     </div>
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label">Ingresa el Password</label>
-                        <input type="text" class="form-control" placeholder="Password" th:field="*{password}" required>
+                        <input id="Password" type="text" class="form-control" placeholder="Password" th:field="*{password}" onblur="ContraseniaBlur(this)">
+                        <span id="errorPassword" class="text-danger"></span>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" th:field="*{sexo}" value="M" required>
+                        <input id="SMasculino" class="form-check-input" type="radio" th:field="*{sexo}" value="Masculino" required>
                         <label class="form-check-label">Masculino</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" th:field="*{sexo}" value="F">
+                        <input id="SFeminino" class="form-check-input" type="radio" th:field="*{sexo}" value="Femenino" required>
                         <label class="form-check-label">Femenino</label>
                     </div>
                     <div class="col-12 col-sm-6 col-md-3">
@@ -77,47 +88,51 @@
                     </div>
                     <div class="col-12 col-sm-6 col-md-3">
                         <label class="form-label">¿Cual es tu Rol?</label>
-                        <select class="form-select" required>
+                        <select id="SRol" class="form-select" required>
                             <option value="">Selecciona un rol</option>
                             <option th:each="rol : ${roles}"
                                     th:value="${rol.idRol}"
                                     th:text="${rol.nombreRol}">
                             </option>
                         </select>
-                        <div class="valid-feedback">¡Se ve bien!</div>
                     </div>
 
             </div>
 
-            <div class="col-6 mt-4 mb-4">
-                <p class="h3 text-primary">Direccion</p>
-            </div>
+            <!--            <div class="col-6 mt-4 mb-4">
+                            <p class="h3 text-primary">Direccion</p>
+                            <input type="text" placeholder="Calle" th:field="*{direcciones[0].calle}">
+                        </div>-->
 
             <div class="row g-3">
                 <div class="col-12 col-sm-6 col-md-3">
                     <label for="ddlpais" class="form-label">Pais</label>
-                    <select id="ddlpais" class="form-select" required>
+                    <select id="ddlpais" class="form-select" onchange="ValidarSelect('ddlpais')">
                         <option value="0" selected>Selecciona el Pais</option>
                         <option th:each="pais : ${paises}" th:value="${pais.idPais}" th:text="${pais.nombrePais}"></option>
                     </select>
+                    <span id="errorddlpais" class="text-danger"></span>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label for="ddlestado" class="form-label">Estado</label>
-                    <select for="ddlestado" id="ddlestado" class="form-select" required>
+                    <select id="ddlestado" class="form-select" onchange="ValidarSelect('ddlestado')">
                         <option value="0" selected>Selecciona un Estado</option>
                     </select>
+                    <span id="errorddlestado" class="text-danger"></span>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label">Municipio</label>
-                    <select id="ddlmunicipio" class="form-select" required>
+                    <select id="ddlmunicipio" class="form-select" onchange="ValidarSelect('ddlmunicipio')">
                         <option value="0" selected>Selecciona tu municipio</option>
                     </select>
+                    <span id="errorddlmunicipio" class="text-danger"></span>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label">Colonia</label>
-                    <select id="ddlcolonia" class="form-select" required>
+                    <select id="ddlcolonia" class="form-select" onchange="ValidarSelect('ddlcolonia')">
                         <option value="0" selected>Selecciona tu colonia</option>
                     </select>
+                    <span id="errorddlcolonia" class="text-danger"></span>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label">Codigo Postal</label>
@@ -128,7 +143,7 @@
                     <label class="form-label">Calle</label>
                     <input id="Calle" type="text" class="form-control" placeholder="Calle" onkeypress="SoloLetrasPunto(this, event)" onblur="SoloLetrasPuntoBlur(this)">
                     <span id="errorCalle" class="text-danger"></span>
-                    ´</div>
+                </div>
                 <div class="col-12 col-sm-6 col-md-3">
                     <label class="form-label">Numero interior</label>
                     <input id="NumeroInterior" type="text" class="form-control" placeholder="Numero Interior" onkeypress="SoloNumeros(this, event)" onblur="SoloNumerosBlur(this)">
@@ -423,7 +438,7 @@
         } else {
             event.preventDefault()
             $(input).addClass("border border-danger")
-            $('#error' + input.id + '').text('Ingresa solo mayusculas y letras')
+            $('#error' + input.id + '').text('Ingresa solo mayusculas y numeros')
         }
     }
 
@@ -437,8 +452,6 @@
             $(input).addClass("border border-success")
         }
     }
-
-
 
 
     // ---- Validar Telefono y Celular (NUMERO INTERIOR, EXTERIOR y Codigo Postal)----
@@ -496,15 +509,101 @@
             $(input).addClass("border border-success")
         }
     }
-    
+
     //Validar correo
-    function Correo(input){
-        
+    function CorreoBlur(input) {
+
         var valorCompleto = $(input).val() + event.key
-        
-        var regex = ;
+
+        var regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if (regex.test($(input).val())) {
+            $('#error' + input.id + '').text('')
+            $(input).removeClass('border border-danger').addClass("border border-success")
+        } else {
+
+        }
     }
-    
+
+    // No permitir copiar ni pegar informacion
+    function BloquearAcciones(selector) {
+
+        $(selector).on('copy paste cut', function (event) {
+            event.preventDefault();
+
+            var idActual = $(this).attr('id');
+
+            $('#error' + idActual).text('Acción no permitida');
+
+        });
+    }
+    $(document).ready(function () {
+        BloquearAcciones('#NombreUsuario, #ApellidoPaterno, #ApellidoMaterno, #FechaNacimiento, #UserName, #Email, \n\
+            #Password, #Telefono, #Celular, #CURP, #txtCodigoPostal, #Calle, #NumeroInterior, #NumeroExterior');
+    });
+
+    //VALIDAR SELECT
+    function ValidarSelect(idSelect) {
+        var valor = $("#" + idSelect).val();
+
+        if (valor == "0") {
+
+            $("#error" + idSelect).text("Debes seleccionar una opción válida");
+            $("#" + idSelect).removeClass("border border-success");
+            $("#" + idSelect).addClass("border border-danger");
+
+            return false;
+
+        } else {
+
+            $("#error" + idSelect).text("");
+            $("#" + idSelect).removeClass("border border-danger");
+            $("#" + idSelect).addClass("border border-success");
+
+            return true;
+        }
+    }
+
+    //Validar la fecha
+    function ValidarFecha() {
+
+        var fecha = $("#exampleDateInput").val();
+
+        if (fecha === "") {
+
+            $("#errorFecha").text("Debes seleccionar una fecha");
+            $("#exampleDateInput")
+                    .removeClass("border-success")
+                    .addClass("border-danger");
+
+            return false;
+
+        } else {
+
+            $("#errorFecha").text("");
+            $("#exampleDateInput")
+                    .removeClass("border-danger")
+                    .addClass("border-success");
+
+            return true;
+        }
+    }
+
+
+    //Validar contraseña
+    function ContraseniaBlur(input) {
+        var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[^\s]{8,16}$/;
+
+        if (regex.test($(input).val())) {
+            $('#error' + input.id + '').text('')
+            $(input).removeClass('border border-danger').addClass("border border-success")
+
+        } else {
+            $('#error' + input.id + '').text('La contraseña no cumple los requisitos')
+            $(input).removeClass('border border-success').addClass("border border-danger")
+        }
+    }
+
 
 </script>
 
