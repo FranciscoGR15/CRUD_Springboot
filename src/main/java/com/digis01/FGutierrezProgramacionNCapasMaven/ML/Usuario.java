@@ -1,7 +1,11 @@
 package com.digis01.FGutierrezProgramacionNCapasMaven.ML;
 
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.format.annotation.DateTimeFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,6 +13,9 @@ import java.util.List;
 public class Usuario {
 
     private int idUsuario;
+    private String imagen;
+    @NotBlank(message = "El username es obligatorio")
+    @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
     private String userName;
     @NotBlank(message = "El nombre es obligatorio")
     @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
@@ -16,23 +23,38 @@ public class Usuario {
     @NotBlank(message = "El apellido paterno es obligatorio")
     @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
     private String apellidoPaterno;
-    @NotBlank(message = "El apellido paterno es obligatorio")
     @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
     private String apellidoMaterno;
     @NotBlank(message = "El email es obligatorio")
-    @jakarta.validation.constraints.Email(message = "Formato de email inválido")
+    @Email(message = "Formato de email inválido")
     private String email;
+    @NotBlank(message = "El password es obligatorio")
+    @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
     private String password;
+    @NotNull(message = "La fecha de nacimiento es obligatoria")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date fechaNacimiento;
+    @NotBlank(message = "No deje este campo vacio")
     private String sexo;
+    @Size(min = 8, max = 20, message = "Debe tener entre 8 y 20 caracteres")
+    @NotBlank(message = "El telefono es obligatorio")
     private String telefono;
     private String celular;
+    @Size(min = 10, max = 50, message = "Debe tener entre 10 y 50 caracteres")
     private String CURP;
     public com.digis01.FGutierrezProgramacionNCapasMaven.ML.Rol rol;
     public List<com.digis01.FGutierrezProgramacionNCapasMaven.ML.Direccion> direcciones;
 
     public Usuario() {
         this.direcciones = new ArrayList<>();
+    }
+
+    public String getImagen() {
+        return imagen;
+    }
+
+    public void setImagen(String imagen) {
+        this.imagen = imagen;
     }
 
     //GETTER Y SETTER (idUsuario)

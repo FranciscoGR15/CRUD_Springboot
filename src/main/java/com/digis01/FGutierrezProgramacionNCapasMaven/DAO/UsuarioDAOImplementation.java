@@ -144,26 +144,35 @@ public class UsuarioDAOImplementation implements IUsuario {
                 callableStatement.execute();
 
                 ResultSet resultSet = (ResultSet) callableStatement.getObject(2);
-                if (resultSet.next()) {
-                    Usuario usuario = new Usuario();
-                    usuario.rol = new Rol();
-                    usuario.setIdUsuario(resultSet.getInt("IdUsuario"));
-                    usuario.setNombre(resultSet.getString("NombreUsuario"));
-                    usuario.setApellidoPaterno(resultSet.getString("ApellidoPaterno"));
-                    usuario.setApellidoMaterno(resultSet.getString("ApellidoMaterno"));
-                    usuario.setUserName(resultSet.getString("UserName"));
-                    usuario.setFechaNacimiento(resultSet.getDate("FechaNacimiento"));
-                    usuario.setEmail(resultSet.getString("Email"));
-                    usuario.setPassword(resultSet.getString("Password"));
-                    usuario.setTelefono(resultSet.getString("Telefono"));
-                    usuario.setCelular(resultSet.getString("Celular"));
-                    usuario.setCURP(resultSet.getString("CURP"));
-                    usuario.rol.setIdRol(resultSet.getInt("IdRol"));
-                    usuario.rol.setNombreRol(resultSet.getString("NombreRol"));
+                Usuario usuario = null;
+
+                while (resultSet.next()) {
+
+                    if (usuario == null) {
+                        usuario = new Usuario();
+                        usuario.rol = new Rol();
+                        usuario.direcciones = new ArrayList<>();
+
+                        usuario.setIdUsuario(resultSet.getInt("IdUsuario"));
+                        usuario.setNombre(resultSet.getString("NombreUsuario"));
+                        usuario.setApellidoPaterno(resultSet.getString("ApellidoPaterno"));
+                        usuario.setApellidoMaterno(resultSet.getString("ApellidoMaterno"));
+                        usuario.setUserName(resultSet.getString("UserName"));
+                        usuario.setFechaNacimiento(resultSet.getDate("FechaNacimiento"));
+                        usuario.setEmail(resultSet.getString("Email"));
+                        usuario.setPassword(resultSet.getString("Password"));
+                        usuario.setTelefono(resultSet.getString("Telefono"));
+                        usuario.setCelular(resultSet.getString("Celular"));
+                        usuario.setCURP(resultSet.getString("CURP"));
+
+                        usuario.rol.setIdRol(resultSet.getInt("IdRol"));
+                        usuario.rol.setNombreRol(resultSet.getString("NombreRol"));
+                    }
 
                     int idDireccion = resultSet.getInt("IdDireccion");
+
                     if (idDireccion != 0) {
-                        usuario.direcciones = new ArrayList<>();
+
                         Direccion direccion = new Direccion();
                         direccion.setIdDireccion(idDireccion);
                         direccion.setCalle(resultSet.getString("Calle"));
@@ -194,12 +203,18 @@ public class UsuarioDAOImplementation implements IUsuario {
 
                         usuario.direcciones.add(direccion);
                     }
+                }
 
+                if (usuario != null) {
                     result.object = usuario;
                     result.correct = true;
                 }
+
+                result.object = usuario;
+                result.correct = true;
                 return true;
-            });
+            }
+            );
         } catch (Exception ex) {
             result.correct = false;
             result.errorMessage = ex.getLocalizedMessage();

@@ -13,8 +13,11 @@ import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Estado;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Municipio;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Pais;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Result;
+import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Rol;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Usuario;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,7 +27,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 
@@ -52,6 +57,7 @@ public class UsuarioController {
     @Autowired
     private DirCodigoPostalDAOImplementation dirCodigoPostalDAOImplementation;
 
+    //TABLA DE DATOS
     @GetMapping
     public String Index(Model model) {
 
@@ -62,28 +68,51 @@ public class UsuarioController {
 
     }
 
+    //FORMULARIO VACIO PARA NUEVO USUARIO
     @GetMapping("form")
     public String Accion(Model model) {
-        model.addAttribute("usuario", new Usuario());
+        Usuario usuario = new Usuario();
+
+        // Inicializar Rol
+        usuario.setRol(new Rol());
+
+        // Inicializar Direccion con Colonia
+        Direccion direccion = new Direccion();
+        usuario.getDirecciones().add(direccion);
+
+        model.addAttribute("usuario", usuario);
         model.addAttribute("roles", rolDAOImplementation.GetAll().objects);
         model.addAttribute("paises", paisDAOImplementation.GetAll().objects);
+        // colonias, estados y municipios los llenas dinámicamente por AJAX
         return "Formulario";
-
     }
-    
-   @PostMapping("form")
-    public String Accion(@Valid @ModelAttribute("usuario") Usuario usuario, BindingResult bindingResult, Model model){
-        
+
+    //METODO POST (AGREGAR)
+    @PostMapping("form")
+    public String guardarUsuario(
+            @Valid @ModelAttribute("usuario") Usuario usuario,
+            BindingResult bindingResult,
+            Model model) {
+
         if (bindingResult.hasErrors()) {
-           model.addAttribute("usuario", usuario);
-           return "Formulario";
-       }
-        
-        return "redirect:/usuario";
-        
-    }
-    
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("roles", rolDAOImplementation.GetAll().objects);
+            model.addAttribute("paises", paisDAOImplementation.GetAll().objects);
+            return "Formulario";
+        }
 
+        // Llamar a tu SP (sin imagen)
+        Result result = usuarioDAOImplementation.UsuarioDireccionAddSP(usuario);
+        if (!result.correct) {
+            model.addAttribute("error", "Error al guardar usuario: " + result.errorMessage);
+            model.addAttribute("usuario", usuario);
+            return "Formulario";
+        }
+
+        return "redirect:/usuario";
+    }
+
+    //EDITAR
     @GetMapping("/form/{IdUsuario}")
     public String Form(@PathVariable int IdUsuario, Model model) {
 
@@ -97,6 +126,7 @@ public class UsuarioController {
 
     }
 
+    //CONTROLLER PARA SELECT - PAIS
     @GetMapping("/getEstadosByPais/{IdPais}")
     @ResponseBody
     public Result getEstadosByPais(@PathVariable("IdPais") int IdPais) {
@@ -106,6 +136,7 @@ public class UsuarioController {
         return result;
     }
 
+    //CONTROLLER PARA SELECT - ESTADO
     @GetMapping("/getMunicipiosByEstado/{IdEstado}")
     @ResponseBody
     public Result getMunicipiosByEstado(@PathVariable("IdEstado") int IdEstado) {
@@ -114,6 +145,7 @@ public class UsuarioController {
         return result;
     }
 
+    //CONTROLLER PARA SELECT - MUNICIPIO
     @GetMapping("/getColoniasByMunicipio/{IdMunicipio}")
     @ResponseBody
     public Result getColoniasByMunicipio(@PathVariable("IdMunicipio") int IdMunicipio) {
@@ -122,6 +154,7 @@ public class UsuarioController {
         return result;
     }
 
+    //CONTROLLER PARA INPUT - CODIGO POSTAL
     @GetMapping("/getDireccionByCodigoPostal/{codigoPostal}")
     @ResponseBody
     public Result getDireccionByCP(@PathVariable String codigoPostal) {
