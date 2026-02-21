@@ -26,5 +26,15 @@ public class Estado {
     public void setNombreEstado(String nombreEstado){
         this.nombreEstado = nombreEstado;
     }
+
+    public Pais getPais() {
+        return pais;
+    }
+
+    public void setPais(Pais pais) {
+        this.pais = pais;
+    }
+    
+    
     
 }

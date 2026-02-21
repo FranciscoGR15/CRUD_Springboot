@@ -10,15 +10,7 @@ public class Colonia {
     @NotBlank(message = "Escriba su codigo postal")
     @Size(min = 3, max = 10, message = "Debe contener de 3 a 10 caracteres")
     private String codigoPostal;
-    private Municipio municipio;
-
-    public Municipio getMunicipio() {
-        return municipio;
-    }
-
-    public void setMunicipio(Municipio municipio) {
-        this.municipio = municipio;
-    }
+    public com.digis01.FGutierrezProgramacionNCapasMaven.ML.Municipio municipio;
 
     //GETTER Y SETTER idColonia
     public int getIdColonia() {
@@ -45,6 +37,14 @@ public class Colonia {
 
     public void setCodigoPostal(String codigoPostal) {
         this.codigoPostal = codigoPostal;
+    }
+
+    public Municipio getMunicipio() {
+        return municipio;
+    }
+
+    public void setMunicipio(Municipio municipio) {
+        this.municipio = municipio;
     }
 
 }

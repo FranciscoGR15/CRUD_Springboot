@@ -15,6 +15,14 @@ public class Direccion {
     public com.digis01.FGutierrezProgramacionNCapasMaven.ML.Usuario usuario;
     public com.digis01.FGutierrezProgramacionNCapasMaven.ML.Colonia colonia;
 
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
     public Colonia getColonia() {
         return colonia;
     }

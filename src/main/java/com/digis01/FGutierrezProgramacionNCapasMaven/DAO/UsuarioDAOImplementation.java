@@ -86,6 +86,7 @@ public class UsuarioDAOImplementation implements IUsuario {
                     usuario.setCelular(resultSet.getString("Celular"));
                     usuario.setCURP(resultSet.getString("CURP"));
                     usuario.rol.setNombreRol(resultSet.getString("NombreRol"));
+                    usuario.setImagen(resultSet.getString("Imagen"));
 
                     result.objects.add(usuario);
 
@@ -160,10 +161,12 @@ public class UsuarioDAOImplementation implements IUsuario {
                         usuario.setUserName(resultSet.getString("UserName"));
                         usuario.setFechaNacimiento(resultSet.getDate("FechaNacimiento"));
                         usuario.setEmail(resultSet.getString("Email"));
+                        usuario.setSexo(resultSet.getString("Sexo"));
                         usuario.setPassword(resultSet.getString("Password"));
                         usuario.setTelefono(resultSet.getString("Telefono"));
                         usuario.setCelular(resultSet.getString("Celular"));
                         usuario.setCURP(resultSet.getString("CURP"));
+                        usuario.setImagen(resultSet.getString("Imagen"));
 
                         usuario.rol.setIdRol(resultSet.getInt("IdRol"));
                         usuario.rol.setNombreRol(resultSet.getString("NombreRol"));
@@ -230,7 +233,7 @@ public class UsuarioDAOImplementation implements IUsuario {
 
         try {
             jdbcTemplate.execute(
-                    "{call UsuarioDireccionAddSP(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}",
+                    "{call UsuarioDireccionAddSP(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}",
                     (CallableStatementCallback<Boolean>) callableStatement -> {
 
                         callableStatement.setString(1, usuario.getNombre());
@@ -244,14 +247,15 @@ public class UsuarioDAOImplementation implements IUsuario {
                         callableStatement.setString(9, usuario.getTelefono());
                         callableStatement.setString(10, usuario.getCelular());
                         callableStatement.setString(11, usuario.getCURP());
-                        callableStatement.setInt(12, usuario.rol.getIdRol());
+                        callableStatement.setInt(12, usuario.getRol().getIdRol());
 
-                        Direccion direccion = usuario.direcciones.get(0);
+                        Direccion direccion = usuario.getDirecciones().get(0);
 
                         callableStatement.setString(13, direccion.getCalle());
                         callableStatement.setString(14, direccion.getNumeroInterior());
                         callableStatement.setString(15, direccion.getNumeroExterior());
-                        callableStatement.setInt(16, direccion.colonia.getIdColonia());
+                        callableStatement.setInt(16, direccion.getColonia().getIdColonia());
+                        callableStatement.setString(17, usuario.getImagen());
 
                         callableStatement.execute();
                         return true;
@@ -267,6 +271,92 @@ public class UsuarioDAOImplementation implements IUsuario {
         }
 
         return result;
+    }
+
+    @Override
+    public Result UsuarioImageUpdateSP(Usuario usuario) {
+        Result result = new Result();
+
+        try {
+
+            jdbcTemplate.execute("{CALL UsuarioImageUpdateSP(?, ?)}", (CallableStatementCallback<Boolean>) callableStatement -> {
+
+                callableStatement.setInt(1, usuario.getIdUsuario());
+                callableStatement.setString(2, usuario.getImagen());
+                callableStatement.execute();
+
+                return true;
+            });
+
+            result.correct = true;
+
+        } catch (Exception ex) {
+            result.correct = false;
+            result.errorMessage = ex.getLocalizedMessage();
+            result.ex = ex;
+        }
+        return result;
+    }
+
+    @Override
+    public Result UsuarioUpdateSP(Usuario usuario) {
+        Result result = new Result();
+        
+        try {
+            
+            jdbcTemplate.execute("{CALL UsuarioUpdateSP(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}", (CallableStatementCallback<Boolean>) callableStatement -> {
+                
+                callableStatement.setString(1, usuario.getNombre());
+                callableStatement.setString(2, usuario.getApellidoPaterno());
+                callableStatement.setString(3, usuario.getApellidoMaterno());
+                callableStatement.setDate(4, new java.sql.Date(usuario.getFechaNacimiento().getTime()));
+                callableStatement.setString(5, usuario.getUserName());
+                callableStatement.setString(6, usuario.getEmail());
+                callableStatement.setString(7, usuario.getSexo());
+                callableStatement.setString(8, usuario.getTelefono());
+                callableStatement.setString(9, usuario.getCelular());
+                callableStatement.setString(10, usuario.getCURP());
+                callableStatement.setInt(11, usuario.getRol().getIdRol());
+                callableStatement.setInt(12, usuario.getIdUsuario());
+                
+                callableStatement.execute();
+                
+                return true;
+                
+            });
+            
+            result.correct = true;
+            
+        } catch (Exception ex) {
+            result.correct = false;
+            result.errorMessage = ex.getLocalizedMessage();
+            result.ex = ex;
+        }
+        return result;
+    }
+
+    @Override
+    public Result UsuarioDeleteSP(Usuario usuario) {
+        Result result = new Result();
+        
+        try {
+            
+            jdbcTemplate.execute("{CALL UsuarioDeleteSP(?)}", (CallableStatementCallback<Boolean>) callableStatement -> {
+                
+                callableStatement.setInt(1, usuario.getIdUsuario());
+                callableStatement.execute();
+                
+                return  true;
+            });
+            result.correct = true;
+        
+        } catch (Exception ex) {
+            result.correct = false;
+            result.errorMessage = ex.getLocalizedMessage();
+            result.ex = ex;
+        }
+        return result;
+        
     }
 
 }

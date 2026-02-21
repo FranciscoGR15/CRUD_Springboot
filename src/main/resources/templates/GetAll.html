@@ -14,7 +14,7 @@
             <div class="row mt-5">
 
                 <div class="col-12 col-sm-6">
-                    <p class="h3 text-primary">Usuario</p>
+                    <p class="h2 text-primary"><strong>Usuario</strong></p>
                 </div>
 
                 <div class="col-12 col-sm-6 col-lg-6 d-sm-flex justify-content-sm-end">
@@ -23,67 +23,162 @@
 
             </div>
 
-            <div class="table-responsive">
+            <div class="table-responsive mt-5">
 
-                <div class="mt-5">
+                <table class="table table-hover align-middle shadow-sm">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th style="width:120px;">Foto</th>
+                            <th>Información Personal</th>
+                            <th>Contacto</th>
+                            <th>Dirección</th>
+                            <th style="width:120px;">Acciones</th>
+                        </tr>
+                    </thead>
 
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Informacion Personal</th>
-                                <th>Informacion de Contacto</th>
-                                <th>Direccion</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <tbody>
-                            <tr th:each="usuario : ${usuarios}">
-                                <td>
-                                    <span th:text="${usuario.Nombre} + ' ' + ${usuario.apellidoPaterno} + ' ' + ${usuario.apellidoMaterno}"></span> <br>
-                                    <p>
-                                        <strong>Usuario:</strong> <span th:text="${usuario.userName}"></span>
-                                    </p>
-                                    <br>
+                    <tbody>
+                        <tr th:each="usuario : ${usuarios}">
 
-                                    <small th:text="'CURP: ' + ${usuario?.CURP ?: 'NO REGISTRADO'}"></small> <br>
-                                    <small th:text="'Fecha: ' + ${usuario.FechaNacimiento}"></small> <br>
-                                    <small th:text="'Sexo: ' + ${usuario.sexo}"></small> <br>
-                                    <small th:text="'Rol: ' + ${usuario.rol.nombreRol}"></small>
-                                </td>
-                                <td>
-                                    <small th:text="'Correo: ' + ${usuario.email}"></small> <br>
-                                    <small th:text="'Telefono: ' + ${usuario.telefono}"></small> <br>
-                                    <small th:text="'Celular: ' + ${usuario.celular}"></small>
-                                </td>                                
-                                <td>
-                                    <ul th:each="dir : ${usuario.direcciones}">
-                                        <li>
-                                            <span th:text="${dir.calle} + ' N: ' + ${dir?.numeroInterior ?: 'Sin numero'} + ' #' + ${dir.numeroExterior} + ', ' + 
-                                                  ${dir.colonia?.nombreColonia ?: 'Sin Colonia'} + ', ' + 
-                                                  ${dir.colonia?.municipio?.nombreMunicipio ?: 'Sin Municipio'} + ', ' + 
-                                                  ${dir.colonia?.municipio?.estado?.nombreEstado ?: 'Sin Estado'}">
-                                            </span>
-                                        </li>
-                                    </ul>
-                                </td>
-                                <td>
-                                    <a class="btn btn-warning" th:href="@{/usuario/form/{id}(id=${usuario.IdUsuario})}"><i class="bi bi-pencil-square"></i></a>
-                                    <button class="btn btn-danger"><i class="bi bi-trash-fill"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                        </tbody>
-                    </table>
+                            <!-- IMAGEN -->
+                            <td class="text-center">
+                                <img th:if="${usuario.imagen != null}"
+                                     th:src="'data:image/jpeg;base64,' + ${usuario.imagen}"
+                                     class="rounded-circle border"
+                                     style="width:80px; height:80px; object-fit:cover;" />
 
-                </div>
+                                <img th:if="${usuario.imagen == null}"
+                                     src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                     class="rounded-circle border"
+                                     style="width:80px; height:80px; object-fit:cover;" />
+                            </td>
+
+                            <!-- INFORMACION PERSONAL -->
+                            <td>
+                                <h6 class="mb-1 fw-bold text-primary"
+                                    th:text="${usuario.nombre} + ' ' + ${usuario.apellidoPaterno} + ' ' + ${usuario.apellidoMaterno}">
+                                </h6>
+
+                                <span class="badge bg-secondary"
+                                      th:text="${usuario.userName}">
+                                </span>
+
+                                <div class="mt-2 small text-muted">
+                                    <div><strong>CURP:</strong> <span th:text="${usuario?.CURP ?: 'NO REGISTRADO'}"></span></div>
+                                    <div><strong>Fecha:</strong> <span th:text="${usuario.fechaNacimiento}"></span></div>
+                                    <div><strong>Sexo:</strong> <span th:text="${usuario.sexo}"></span></div>
+                                    <div><strong>Rol:</strong> 
+                                        <span class="badge bg-info text-dark"
+                                              th:text="${usuario.rol.nombreRol}">
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- CONTACTO -->
+                            <td class="small">
+                                <div><i class="bi bi-envelope"></i> 
+                                    <span th:text="${usuario.email}"></span>
+                                </div>
+                                <div><i class="bi bi-telephone"></i> 
+                                    <span th:text="${usuario.telefono}"></span>
+                                </div>
+                                <div><i class="bi bi-phone"></i> 
+                                    <span th:text="${usuario.celular}"></span>
+                                </div>
+                            </td>
+
+                            <!-- DIRECCION -->
+                            <td class="small">
+
+                                <!-- SI TIENE DIRECCIONES -->
+                                <ul class="mb-0 ps-3"
+                                    th:if="${usuario.direcciones != null and !#lists.isEmpty(usuario.direcciones)}"
+                                    th:each="dir : ${usuario.direcciones}">
+                                    <li>
+                                        <span th:text="
+                                              ${dir.calle} + ' #' + ${dir.numeroExterior} +
+                                              (${dir.numeroInterior} != null ? ' Int. ' + ${dir.numeroInterior} : '') +
+                                              ', ' + ${dir.colonia?.nombreColonia ?: 'Sin Colonia'} +
+                                              ', ' + ${dir.colonia?.municipio?.nombreMunicipio ?: ''} +
+                                              ', ' + ${dir.colonia?.municipio?.estado?.nombreEstado ?: ''}
+                                              ">
+                                        </span>
+                                    </li>
+                                </ul>
+
+                                <!-- SI NO TIENE DIRECCION -->
+                                <span class="text-muted fst-italic"
+                                      th:if="${usuario.direcciones == null or #lists.isEmpty(usuario.direcciones)}">
+                                    Dirección no registrada
+                                </span>
+
+                            </td>
+
+
+                            <!-- ACCIONES -->
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a class="btn btn-sm btn-success"
+                                       th:href="@{/usuario/perfil/{id}(id=${usuario.idUsuario})}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+
+                                    <form th:action="@{/usuario/delete/{id}(id=${usuario.idUsuario})}"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirmDelete(event)">
+
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+
+                                    </form>
+
+                                </div>
+                            </td>
+
+                        </tr>
+                    </tbody>
+
+                </table>
 
             </div>
+
 
         </div>
 
     </body>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+                                              function confirmDelete(event) {
+                                                  event.preventDefault();
+
+                                                  Swal.fire({
+                                                      title: '¿Estás seguro?',
+                                                      text: 'Esta acción eliminará el usuario y todas sus direcciones.',
+                                                      icon: 'warning',
+                                                      showCancelButton: true,
+                                                      confirmButtonText: 'Sí, eliminar',
+                                                      cancelButtonText: 'Cancelar'
+                                                  }).then((result) => {
+                                                      if (result.isConfirmed) {
+                                                          event.target.submit();
+                                                      } 
+                                                  });
+
+                                                  return false;
+                                              }
+    </script><script th:if="${icon != null}">
+        Swal.fire({
+            icon: '[[${icon}]]',
+            title: '[[${title}]]',
+            text: '[[${text}]]'
+        });
+    </script>
+
+
 
 </html>

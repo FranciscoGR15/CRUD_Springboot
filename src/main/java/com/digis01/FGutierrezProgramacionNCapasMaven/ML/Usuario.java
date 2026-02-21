@@ -1,6 +1,5 @@
 package com.digis01.FGutierrezProgramacionNCapasMaven.ML;
 
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,7 +33,6 @@ public class Usuario {
     @NotNull(message = "La fecha de nacimiento es obligatoria")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date fechaNacimiento;
-    @NotBlank(message = "No deje este campo vacio")
     private String sexo;
     @Size(min = 8, max = 20, message = "Debe tener entre 8 y 20 caracteres")
     @NotBlank(message = "El telefono es obligatorio")
@@ -42,8 +40,8 @@ public class Usuario {
     private String celular;
     @Size(min = 10, max = 50, message = "Debe tener entre 10 y 50 caracteres")
     private String CURP;
-    public com.digis01.FGutierrezProgramacionNCapasMaven.ML.Rol rol;
-    public List<com.digis01.FGutierrezProgramacionNCapasMaven.ML.Direccion> direcciones;
+    public Rol rol;
+    public List<Direccion> direcciones;
 
     public Usuario() {
         this.direcciones = new ArrayList<>();
@@ -163,14 +161,6 @@ public class Usuario {
 
     public void setCURP(String CURP) {
         this.CURP = CURP;
-    }
-
-    public String getApellidoPatero() {
-        return apellidoPaterno;
-    }
-
-    public void setApellidoPatero(String apellidoPatero) {
-        this.apellidoPaterno = apellidoPatero;
     }
 
     public Rol getRol() {
