@@ -1,0 +1,15 @@
+Alfonso|Perez|Martinez|22-JAN-98|Alfred90|alfred.pe@gmail.com|alFredo10@2|Masculino|5500100002|5511012112|APM220512SDCKJSDCLK2|1|Av. Reforma|123|10|3
+Valeria|Gomez|Lopez|15-MAR-95|ValeG95|valegomez@gmail.com|Valee1234!|Femenino|5500200003|5511022334|VGL150395LKJH2345SD|3|Calle Roble|45|190|5
+Carlos|Ramirez|Torres|07-JUL-90|CaroR90|c.ramirez@mail.com|CarooR!90|Masculino|5500300004|5511032445|CRT070790QWER5678ZX|4|Insurgentes Sur|1500|200|10
+Sofia|Hernandez|Santos|29-SEP-92|SofiH92|sofia.h@mail.com|SofiiH@92|Femenino|5500400005|5511042556|SHS290992ZXCV1234AS|1|Calle 5 de Mayo|22|4|90
+Miguel|Lopez|Diaz|11-DEC-88|MigLo88|miguel.ld@gmail.com|Miguel88*|Masculino|5500500006|5511052667|MLD111288QAZX9876PO|3|Av. Juarez|88|201|120
+Camila|Torres|Reyes|03-FEB-97|CamiT97|camila.tr@gmail.com|CamiiT97#|Femenino|5500600007|5511062778|CTR030297WSX1234LK|4|Paseo de los Alamos|312|6|12
+Jorge|Vargas|Mendez|18-MAY-93|JorV93|jorge.v@gmail.com|JorgeV93!|Masculino|5500700008|5511072889|JVM180593ASDF5678QW|1|Calle Independencia|505|10|87
+Fernanda|Martinez|Cruz|25-AUG-91|FerM91|fer.martinez@mail.com|FeerM@91|Femenino|5500800009|5511082990|FMC250891ZXCV6789PO|3|Av. Hidalgo|10|90|67
+Diego|Santos|Hernandez|12-OCT-89|DiegoS89|diego.sh@gmail.com|DiegoS89|Masculino|5500900010|5511092001|DSH121089QWER3456TY|4|Circuito Exterior|99|8|30
+Isabella|Lopez|Gomez|04-JAN-96|IsaL96|isabella.lg@gmail.com|IsaaL96#|Femenino|5501000011|5511102112|ILG040196ASDF7890YU|1|Calle Pino|77|302|15
+Ricardo|Perez|Vargas|30-MAR-94|RicP94|ricardo.pv@gmail.com|RiccP94!|Masculino|5501100012|5511112223|RPV300394ZXCV4567OP|3|Calzada del Sol|210|1|56
+Valentina|Diaz|Ramirez|17-JUN-92|ValD92|valentina.dr@mail.com|VaalD92@|Femenino|5501200013|5511122334|VDR170692QAZX3456LK|4|Av. Morelos|44|8|39
+Andres|Cruz|Lopez|09-SEP-90|AndC90|andres.cl@gmail.com|AnredC90|Masculino|5501300014|5511132445|ACL090990WSX2345QW|1|Calle Libertad|15|909|80
+Monica|Reyes|Torres|21-NOV-93|MonR93|monica.rt@mail.com|MoonR93#|Femenino|5501400015|5511142556|MRT211193ASDF4567ER|3|Paseo de la Luna|80|12|772
+Javier|Mendez|Martinez|06-FEB-95|JavM95|javier.mm@gmail.com|JaaavM95!|Masculino|5501500016|5511152667|JMM060295ZXCV6789TY|4|Calle del Carmen|603|5|36

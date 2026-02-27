@@ -1,0 +1,3 @@
+Alfonso|Magaña|Martinez|22-JAN-98|Alfred90|alfred.pe@gmail.com|alFredo10@2|Masculino|5500100002|5511012112|APM220512SDCKJSDCLK2|1|Av. Reforma|123|10|3
+Valeria|Gomez|Lopez|15-MAR-95|ValeG95|valegomez@gmail.com|Valee1234!|Femenino|5500200003|5511022334|VGL150395LKJH2345SD|3|Calle Roble|45|190|5
+Carlos|Ramirez|Torres|07-JUL-90|CaroR90|c.ramirez@mail.com|CarooR!90|Masculino|5500300004|5511032445|CRT070790QWER5678ZX|4|Insurgentes Sur|1500|200|10

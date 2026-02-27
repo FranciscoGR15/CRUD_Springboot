@@ -1,5 +1,6 @@
 package com.digis01.FGutierrezProgramacionNCapasMaven.ML;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -40,6 +41,8 @@ public class Usuario {
     private String celular;
     @Size(min = 10, max = 50, message = "Debe tener entre 10 y 50 caracteres")
     private String CURP;
+    private int status;
+    @Valid
     public Rol rol;
     public List<Direccion> direcciones;
 
@@ -161,6 +164,14 @@ public class Usuario {
 
     public void setCURP(String CURP) {
         this.CURP = CURP;
+    }
+    
+    public int getStatus(){
+        return status;
+    }
+    
+    public void setStatus(int status){
+        this.status = status;
     }
 
     public Rol getRol() {

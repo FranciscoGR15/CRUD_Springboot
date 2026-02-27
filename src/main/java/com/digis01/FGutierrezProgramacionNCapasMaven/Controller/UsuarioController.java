@@ -10,19 +10,44 @@ import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.RolDAOImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.UsuarioDAOImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Colonia;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Direccion;
+import com.digis01.FGutierrezProgramacionNCapasMaven.ML.ErroresArchivo;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Estado;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Municipio;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Pais;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Result;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Rol;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Usuario;
+import com.digis01.FGutierrezProgramacionNCapasMaven.Service.ValidationService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,6 +86,9 @@ public class UsuarioController {
     @Autowired
     private DireccionDAOImplementation direccionDAOImplementation;
 
+    @Autowired
+    private ValidationService validationService;
+
     //------------------ TABLA DE DATOS ------------------------
     @GetMapping
     public String Index(Model model) {
@@ -91,6 +119,51 @@ public class UsuarioController {
         model.addAttribute("paises", paisDAOImplementation.GetAll().objects);
 
         return "Formulario";
+    }
+
+    //------------------ TABLA DE DATOS CON FILTRO ------------------------
+    @GetMapping("/getAll")
+    public String GetAllFiltrado(
+            @RequestParam(name = "nombre", required = false) String nombre,
+            @RequestParam(name = "apellidoPaterno", required = false) String apellidoPaterno,
+            @RequestParam(name = "apellidoMaterno", required = false) String apellidoMaterno,
+            @RequestParam(name = "idRol", required = false, defaultValue = "0") Integer idRol,
+            Model model) {
+
+        Result result = usuarioDAOImplementation.GetAllFiltrado(
+                nombre,
+                apellidoPaterno,
+                apellidoMaterno,
+                (idRol != null && idRol != 0) ? idRol : null
+        );
+
+        // Cargamos la lista de usuarios filtrada
+        model.addAttribute("usuarios", result.objects);
+
+        // Lista de roles para el dropdown del formulario
+        Result rolesResult = rolDAOImplementation.GetAll();
+        model.addAttribute("roles", rolesResult.objects);
+
+        // Mantener los valores del formulario
+        model.addAttribute("param", new ParamFilter(nombre, apellidoPaterno, apellidoMaterno, idRol));
+
+        return "GetAll";
+    }
+
+    // Clase auxiliar para mantener los valores del formulario
+    public static class ParamFilter {
+
+        public String nombre;
+        public String apellidoPaterno;
+        public String apellidoMaterno;
+        public Integer idRol;
+
+        public ParamFilter(String nombre, String apellidoPaterno, String apellidoMaterno, Integer idRol) {
+            this.nombre = nombre;
+            this.apellidoPaterno = apellidoPaterno;
+            this.apellidoMaterno = apellidoMaterno;
+            this.idRol = idRol;
+        }
     }
 
     //--------------- METODO POST (AGREGAR) --------------------
@@ -399,22 +472,304 @@ public class UsuarioController {
     /* ---------------- ACTUALIZAR DIRECCION -----------------*/
     @PostMapping("/updateDireccion")
     public String updateDireccion(@ModelAttribute Direccion direccion, RedirectAttributes redirectAttributes) {
-        
+
+        if (direccion.getColonia() == null) {
+            direccion.setColonia(new Colonia());
+        }
+        if (direccion.getColonia().getMunicipio() == null) {
+            direccion.getColonia().setMunicipio(new Municipio());
+        }
+        if (direccion.getColonia().getMunicipio().getEstado() == null) {
+            direccion.getColonia().getMunicipio().setEstado(new Estado());
+        }
+        if (direccion.getColonia().getMunicipio().getEstado().getPais() == null) {
+            direccion.getColonia().getMunicipio().getEstado().setPais(new Pais());
+        }
+
         Result result = direccionDAOImplementation.DireccionUpdateSP(direccion);
 
         if (result.correct) {
             redirectAttributes.addFlashAttribute("icon", "success");
             redirectAttributes.addFlashAttribute("title", "Actualizado");
-            redirectAttributes.addFlashAttribute("text", "Se actualizo la direccion.");
+            redirectAttributes.addFlashAttribute("text", "Se actualizó la dirección correctamente.");
         } else {
             redirectAttributes.addFlashAttribute("icon", "error");
             redirectAttributes.addFlashAttribute("title", "Error");
-            redirectAttributes.addFlashAttribute("text", "No fue posible actualizar la informacion." +result.errorMessage);
+            redirectAttributes.addFlashAttribute("text", "No fue posible actualizar la información: " + result.errorMessage);
+        }
+
+        int idUsuario = direccion.getUsuario() != null ? direccion.getUsuario().getIdUsuario() : 0;
+        if (idUsuario == 0) {
+            idUsuario = 1;
+        }
+        return "redirect:/usuario/perfil/" + idUsuario;
+    }
+
+    /* ------------ CARGA MASIVA -------------- */
+    @GetMapping("/cargamasiva")
+    public String CargaMasiva() {
+        return "CargaMasiva";
+    }
+
+    /* ------------- Validacion ------------ */
+    @PostMapping("/cargamasiva")
+    public String CargaMasiva(@RequestParam("archivo") MultipartFile archivo, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+
+        try {
+
+            if (archivo != null) {
+                String rutaBase = System.getProperty("user.dir");
+                String rutaCarpeta = "src/main/resources/archivoCM";
+                String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmSS"));
+                String nombreArchivo = fecha + archivo.getOriginalFilename();
+                String rutaArchivo = rutaBase + "/" + rutaCarpeta + "/" + nombreArchivo;
+                String extension = archivo.getOriginalFilename().split("\\.")[1];
+                List<Usuario> usuarios = null;
+
+                if (extension.equals("txt")) {
+                    archivo.transferTo(new File(rutaArchivo));
+                    usuarios = LecturaArchivoTxt(new File(rutaArchivo));
+                } else if (extension.equals("xlsx")) {
+                    archivo.transferTo(new File(rutaArchivo));
+                    usuarios = LecturaArchivoExcel(new File(rutaArchivo));
+                } else {
+                    redirectAttributes.addFlashAttribute("icon", "error");
+                    redirectAttributes.addFlashAttribute("title", "Error");
+                    redirectAttributes.addFlashAttribute("text", "Error: extension erronea");
+                }
+
+                List<ErroresArchivo> errores = ValidarDatos(usuarios);
+
+                if (errores.isEmpty()) {
+
+                    UUID uuidCarga = UUID.randomUUID();
+                    request.getSession().setAttribute("ruta_" + uuidCarga, rutaArchivo);
+                    request.getSession().setAttribute("tipo_" + uuidCarga, extension);
+
+                    redirectAttributes.addFlashAttribute("uuidCarga", uuidCarga.toString());
+                    redirectAttributes.addFlashAttribute("icon", "success");
+                    redirectAttributes.addFlashAttribute("title", "Archivo válido");
+                    redirectAttributes.addFlashAttribute("text", "Los datos son correctos, ¿Desea procesarlos?");
+                    redirectAttributes.addFlashAttribute("mostrarProcesar", true);
+
+                    return "redirect:/usuario/cargamasiva";
+                } else {
+                    redirectAttributes.addFlashAttribute("icon", "error");
+                    redirectAttributes.addFlashAttribute("title", "Errores en el archivo");
+                    redirectAttributes.addFlashAttribute("errores", errores);
+
+                    return "redirect:/usuario/cargamasiva";
+                }
+                /*
+                    - insertarlos
+                    - renderizar la lista de errores
+                 */
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return "CargaMasiva";
+    }
+
+    public List<Usuario> LecturaArchivoTxt(File archivo) {
+        List<Usuario> usuarios;
+
+        try (InputStream inputStream = new FileInputStream(archivo); BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+
+            usuarios = new ArrayList<>();
+            String cadena = "";
+
+            while ((cadena = bufferedReader.readLine()) != null) {
+                String[] datosUsuario = cadena.split("\\|");//Delimito con pipe |
+
+                Usuario usuario = new Usuario();
+                usuario.setNombre(datosUsuario[0]);
+                usuario.setApellidoPaterno(datosUsuario[1]);
+                usuario.setApellidoMaterno(datosUsuario[2]);
+                SimpleDateFormat nFechaNacimiento = new SimpleDateFormat("dd-MMM-yy", Locale.ENGLISH);
+                nFechaNacimiento.setLenient(false);
+                usuario.setFechaNacimiento(nFechaNacimiento.parse(datosUsuario[3]));
+                usuario.setUserName(datosUsuario[4]);
+                usuario.setEmail(datosUsuario[5]);
+                usuario.setPassword(datosUsuario[6]);
+                usuario.setSexo(datosUsuario[7]);
+                usuario.setTelefono(datosUsuario[8]);
+                usuario.setCelular(datosUsuario[9]);
+                usuario.setCURP(datosUsuario[10]);
+
+                Rol rol = new Rol();
+                rol.setIdRol(Integer.parseInt(datosUsuario[11]));
+                usuario.setRol(rol);
+
+                Direccion direccion = new Direccion();
+                direccion.setCalle(datosUsuario[12]);
+                direccion.setNumeroInterior(datosUsuario[13]);
+                direccion.setNumeroExterior(datosUsuario[14]);
+                Colonia colonia = new Colonia();
+                colonia.setIdColonia(Integer.parseInt(datosUsuario[15]));
+                direccion.setColonia(colonia);
+
+                direccion.setUsuario(usuario);
+                usuario.getDirecciones().add(direccion);
+
+                usuarios.add(usuario);
+            }
+        } catch (Exception ex) {
+            return null;
+        }
+        return usuarios;
+    }
+
+    public List<Usuario> LecturaArchivoExcel(File archivo) {
+        List<Usuario> usuarios = null;
+
+        try (InputStream inputStream = new FileInputStream(archivo); XSSFWorkbook workbook = new XSSFWorkbook(inputStream)) {
+
+            XSSFSheet sheet = workbook.getSheetAt(0);
+
+            usuarios = new ArrayList<>();
+
+            DataFormatter dataFormatter = new DataFormatter();
+
+            for (Row row : sheet) {
+                Usuario usuario = new Usuario();
+
+                usuario.setNombre(dataFormatter.formatCellValue(row.getCell(0)));
+                usuario.setApellidoPaterno(dataFormatter.formatCellValue(row.getCell(1)));
+                usuario.setApellidoMaterno(dataFormatter.formatCellValue(row.getCell(2)));
+
+                Cell fechaCell = row.getCell(3);
+                if (fechaCell != null) {
+
+                    if (fechaCell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(fechaCell)) {
+
+                        usuario.setFechaNacimiento(fechaCell.getDateCellValue());
+
+                    } else {
+                        SimpleDateFormat formato = new SimpleDateFormat("dd-MMM-yy", Locale.ENGLISH);
+                        formato.setLenient(false);
+                        usuario.setFechaNacimiento(formato.parse(fechaCell.toString()));
+                    }
+                }
+
+                usuario.setUserName(row.getCell(4).toString());
+                usuario.setEmail(row.getCell(5).toString());
+                usuario.setPassword(row.getCell(6).toString());
+                usuario.setSexo(row.getCell(7).toString());
+                usuario.setTelefono(dataFormatter.formatCellValue(row.getCell(8)));
+                usuario.setCelular(dataFormatter.formatCellValue(row.getCell(9)));
+                usuario.setCURP(row.getCell(10).toString());
+
+                Cell rolCell = row.getCell(11);
+                if (rolCell != null) {
+                    Rol rol = new Rol();
+                    rol.setIdRol(Integer.parseInt(dataFormatter.formatCellValue(rolCell)));
+                    usuario.setRol(rol);
+                }
+
+                Direccion direccion = new Direccion();
+                direccion.setCalle(row.getCell(12).toString());
+                direccion.setNumeroInterior(dataFormatter.formatCellValue(row.getCell(13)));
+                direccion.setNumeroExterior(dataFormatter.formatCellValue(row.getCell(14)));
+
+                Cell coloniaCell = row.getCell(15);
+                if (coloniaCell != null) {
+                    Colonia colonia = new Colonia();
+                    colonia.setIdColonia(Integer.parseInt(dataFormatter.formatCellValue(coloniaCell)));
+                    direccion.setColonia(colonia);
+                }
+
+                direccion.setUsuario(usuario);
+                usuario.getDirecciones().add(direccion);
+
+                usuarios.add(usuario);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error");
+        }
+        return usuarios;
+    }
+
+    public List<ErroresArchivo> ValidarDatos(List<Usuario> usuarios) {
+        List<ErroresArchivo> errores = new ArrayList<>();
+        int fila = 1;
+
+        for (Usuario usuario : usuarios) {
+            BindingResult bindingResult = validationService.ValidateObject(usuario);
+
+            if (bindingResult.hasErrors()) {
+                for (FieldError fieldError : bindingResult.getFieldErrors()) {
+                    ErroresArchivo erroresArchivo = new ErroresArchivo();
+                    erroresArchivo.setFila(fila);
+                    erroresArchivo.setDato(fieldError.getField()); //es el nombre del campo
+                    erroresArchivo.setDescripcion(fieldError.getDefaultMessage());
+
+                    errores.add(erroresArchivo);
+                }
+            }
+            fila++;
+        }
+
+        return errores;
+    }
+
+    /*--------------- Ingresar datos del archivo ------------------*/
+    @GetMapping("/cargamasiva/procesar/{uuidCarga}")
+    public String ProcesarCargaMasiva(
+            @PathVariable String uuidCarga,
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
+
+        String rutaArchivo = (String) session.getAttribute("ruta_" + uuidCarga);
+        String tipoArchivo = (String) session.getAttribute("tipo_" + uuidCarga);
+
+        if (rutaArchivo == null || tipoArchivo == null) {
+            redirectAttributes.addFlashAttribute("icon", "error");
+            redirectAttributes.addFlashAttribute("title", "Sesión expirada");
+            redirectAttributes.addFlashAttribute("text", "La carga ya no está disponible.");
+            return "redirect:/usuario/cargamasiva";
+        }
+
+        List<Usuario> usuarios;
+
+        if (tipoArchivo.equals("txt")) {
+            usuarios = LecturaArchivoTxt(new File(rutaArchivo));
+        } else {
+            usuarios = LecturaArchivoExcel(new File(rutaArchivo));
+        }
+
+        Result result = usuarioDAOImplementation.UsuarioDireccionAddAll(usuarios);
+
+        session.removeAttribute("ruta_" + uuidCarga);
+        session.removeAttribute("tipo_" + uuidCarga);
+
+        if (result.correct) {
+            redirectAttributes.addFlashAttribute("icon", "success");
+            redirectAttributes.addFlashAttribute("title", "Carga completada");
+            redirectAttributes.addFlashAttribute("text", "Los registros fueron insertados correctamente.");
+        } else {
+            redirectAttributes.addFlashAttribute("icon", "error");
+            redirectAttributes.addFlashAttribute("title", "Error al insertar");
+            redirectAttributes.addFlashAttribute("text", result.errorMessage);
         }
 
         return "redirect:/usuario";
     }
 
+    
+    
+    /* --------------- MODIFICAR BOTON STATUS ---------------*/
+    @PostMapping("/statusUpate")
+    public String UpdateStatus(@ModelAttribute Usuario usuario, RedirectAttributes redirectAttributes){
+        
+        Result result = usuarioDAOImplementation.UsuarioStatusUpdateSP(usuario);
+
+        return "usuario";
+    }
+    
+    
     /*------------- CONTROLLER PARA CARGAR LOS SELECT ---------------*/
     //-------------- CONTROLLER PARA SELECT - PAIS ------------------
     @GetMapping("/getEstadosByPais/{IdPais}")

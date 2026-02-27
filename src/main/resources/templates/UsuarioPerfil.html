@@ -3,7 +3,7 @@
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
 -->
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Datos del Usuario</title>
         <meta charset="UTF-8">
@@ -139,7 +139,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 <div class="modal-dialog">
                     <div class="modal-content">
 
-                        <form th:action="@{/usuario/updateDireccion}" method="post" th:object="${usuario.direcciones[__${stat.index}__]}" >
+                        <form th:action="@{/usuario/updateDireccion}" method="post" th:object="${usuario.direcciones[__${stat.index}__]}" onsubmit="return UpdateDireccion(event)">
 
                             <div class="modal-header">
                                 <h5 class="modal-title">Editar Dirección</h5>
@@ -152,10 +152,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                 <input type="hidden" 
                                        th:field="*{idDireccion}">
 
+                                <input type="hidden" name="usuario.idUsuario"
+                                       th:value="${usuario.idUsuario}">
+
                                 <!-- PAIS -->
                                 <div class="mb-3">
                                     <label>Pais</label>
-                                    <select id="ddlpais2" class="form-select"
+                                    <select th:id="'ddlpais2'+ ${dir.idDireccion}" class="form-select ddlpais2"
                                             th:field="*{colonia.municipio.estado.pais.idPais}">
                                         <option value="0">Selecciona el Pais</option>
                                         <option th:each="pais : ${paises}"
@@ -168,7 +171,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                 <!-- ESTADO -->
                                 <div class="mb-3">
                                     <label>Estado</label>
-                                    <select id="ddlestado2" class="form-select"
+                                    <select th:id="'ddlestado2' + ${dir.idDireccion}" class="form-select ddlestado2"
                                             th:field="*{colonia.municipio.estado.idEstado}">
                                         <option value="0">Selecciona un Estado</option>
                                         <option th:each="estado : ${estados}"
@@ -181,7 +184,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                 <!-- MUNICIPIO -->
                                 <div class="mb-3">
                                     <label>Municipio</label>
-                                    <select id="ddlmunicipio2" class="form-select"
+                                    <select th:id="'ddlmunicipio2' + ${dir.idDireccion}" class="form-select ddlmunicipio2"
                                             th:field="*{colonia.municipio.idMunicipio}">
                                         <option value="0">Selecciona tu municipio</option>
                                         <option th:each="municipio : ${municipios}"
@@ -194,7 +197,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                 <!-- COLONIA -->
                                 <div class="mb-3">
                                     <label>Colonia</label>
-                                    <select id="ddlcolonia2" class="form-select"
+                                    <select th:id="'ddlcolonia2' + ${dir.idDireccion}" class="form-select ddlcolonia2"
                                             th:field="*{colonia.idColonia}">
                                         <option value="0">Selecciona tu colonia</option>
                                         <option th:each="colonia : ${colonias}"
@@ -206,9 +209,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
                                 <div class="mb-3">
                                     <label>Codigo Postal</label>
-                                    <input id="txtCodigoPostal2" 
-                                        type="text"
-                                           class="form-control"
+                                    <input th:id="'txtCodigoPostal2' + ${dir.idDireccion}" 
+                                           type="text"
+                                           class="form-control txtCodigoPostal2"
                                            th:field="*{colonia.codigoPostal}">
                                 </div>
 
@@ -321,20 +324,39 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                        onkeydown="return false"
                                        min="1900-01-01"
                                        max="2008-01-01">
+                                <span id="errorFechaN" class="text-danger"></span>
+                                <span class="text-danger"
+                                      th:if="${#fields.hasErrors('fechaNacimiento')}"
+                                      th:errors="*{fechaNacimiento}">
+                                </span>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">UserName</label>
-                                <input type="text"
+                                <input id="UserName"
+                                       type="text"
                                        name="UserName"
                                        class="form-control"
-                                       th:field="*{userName}">
+                                       th:field="*{userName}"
+                                       onkeypress="SoloLetrasNumeros(this, event)"
+                                       onblur="SoloLetrasNumerosBlur(this)">
+                                <span id="errorUserName" class="text-danger"></span>
+                                <span class="text-danger"
+                                      th:if="${#fields.hasErrors('userName')}"
+                                      th:errors="*{userName}">
+                                </span>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Email</label>
-                                <input type="email"
+                                <input id="Email" type="email"
                                        name="Email"
                                        class="form-control"
-                                       th:field="*{email}">
+                                       th:field="*{email}"
+                                       onblur="CorreoBlur(this)">
+                                <span id="errorEmail" class="text-danger"></span>
+                                <span class="text-danger"
+                                      th:if="${#fields.hasErrors('email')}"
+                                      th:errors="*{email}">
+                                </span>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Sexo</label>
@@ -349,17 +371,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Telefono</label>
-                                <input type="text"
-                                       name="Telefono"
-                                       class="form-control"
-                                       th:field="*{telefono}">
+                                <input id="Telefono" type="text"
+                                       name="Telefono" class="form-control"
+                                       th:field="*{telefono}" onkeypress="SoloNumeros(this, event)" onblur="SoloNumerosBlur(this)">
+                                <span id="errorTelefono" class="text-danger"></span>
+                                <span class="text-danger"
+                                      th:if="${#fields.hasErrors('telefono')}"
+                                      th:errors="*{telefono}">
+                                </span>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Celular</label>
-                                <input type="text"
+                                <input id="Celular"
+                                       type="text"
                                        name="Celular"
                                        class="form-control"
-                                       th:field="*{celular}">
+                                       th:field="*{celular}" onkeypress="SoloNumeros(this, event)" onblur="SoloNumerosBlur(this)">
+                                <span id="errorCelular" class="text-danger"></span>
+                                <span class="text-danger"
+                                      th:if="${#fields.hasErrors('celular')}"
+                                      th:errors="*{celular}">
+                                </span>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">CURP</label>
@@ -551,7 +583,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
                                             function UpdateUsuario(event) {
                                                 event.preventDefault();
-
                                                 Swal.fire({
                                                     title: '¿Deseas actualizar la información?.',
                                                     text: "Se modificará tu informacion principal.",
@@ -572,7 +603,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
                                             function AddDireccion(event) {
                                                 event.preventDefault();
-
                                                 Swal.fire({
                                                     title: '¿Desea agregar una nueva dirección?.',
                                                     text: "Se agregara una nueva dirección.",
@@ -593,7 +623,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
                                             function DeleteDireccion(event) {
                                                 event.preventDefault();
-
                                                 Swal.fire({
                                                     title: '¿Desea eliminar esta dirección?.',
                                                     text: "Se elimino la dirección.",
@@ -602,6 +631,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                                     confirmButtonColor: '#fd7e14',
                                                     cancelButtonColor: '#d33',
                                                     confirmButtonText: 'Eliminar',
+                                                    cancelButtonText: 'Cancelar'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        event.target.submit();
+                                                    }
+
+                                                });
+                                                return false
+                                            }
+
+                                            function UpdateDireccion(event) {
+                                                event.preventDefault();
+                                                Swal.fire({
+                                                    title: '¿Deseas actualizar la direccion?.',
+                                                    text: "Se modificará tu direccion.",
+                                                    icon: 'question',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#fd7e14',
+                                                    cancelButtonColor: '#d33',
+                                                    confirmButtonText: 'Actualizar',
                                                     cancelButtonText: 'Cancelar'
                                                 }).then((result) => {
                                                     if (result.isConfirmed) {
@@ -626,10 +675,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             $("#ddlpais").change(function () {
                 var IdPais = $("#ddlpais").val();
                 var ddlEstado = $("#ddlestado");
-
                 ddlEstado.empty();
                 ddlEstado.append("<option value='0'>Selecciona un Estado</option>");
-
                 if (IdPais != 0) {
                     $.ajax({
                         url: "/usuario/getEstadosByPais/" + IdPais,
@@ -656,17 +703,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 }
             });
         });
-
         $(document).ready(function () {
 
             $("#ddlestado").change(function () {
 
                 var IdEstado = $("#ddlestado").val();
                 var ddlMunicipio = $("#ddlmunicipio");
-
                 ddlMunicipio.empty();
                 ddlMunicipio.append("<option value='0'>Selecciona un Municipio</option>");
-
                 if (IdEstado != 0) {
                     $.ajax({
                         url: "/usuario/getMunicipiosByEstado/" + IdEstado,
@@ -693,19 +737,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 }
             });
         });
-
         $(document).ready(function () {
 
             $("#ddlmunicipio").change(function () {
 
                 var IdMunicipio = $("#ddlmunicipio").val();
                 var ddlColonia = $("#ddlcolonia");
-
                 ddlColonia.empty();
                 ddlColonia.append("<option value='0'>Selecciona una Colonia</option>");
-
                 $("#txtCodigoPostal").val("");
-
                 if (IdMunicipio != 0) {
 
                     $.ajax({
@@ -724,9 +764,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                             colonia.nombreColonia +
                                             "</option>"
                                             );
-
                                 });
-
                             } else {
                                 alert("Error: " + result.errorMessage);
                             }
@@ -738,13 +776,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 }
             });
         });
-
         $(document).ready(function () {
 
             $("#ddlcolonia").change(function () {
 
                 var codigoPostal = $("#ddlcolonia option:selected").data("cp");
-
                 if (codigoPostal) {
                     $("#txtCodigoPostal").val(codigoPostal);
                 } else {
@@ -753,10 +789,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
             });
         });
-
         $("#txtCodigoPostal").change(function () {
             var codigoPostal = $(this).val();
-
             if (codigoPostal.length > 0) {
                 $.ajax({
                     url: "/usuario/getDireccionByCodigoPostal/" + codigoPostal,
@@ -766,20 +800,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                         if (result.correct && result.objects.length > 0) {
 
                             var primeraColonia = result.objects[0];
-
                             $("#ddlpais").val(primeraColonia.municipio.estado.pais.idPais).change();
-
                             setTimeout(function () {
                                 $("#ddlestado").val(primeraColonia.municipio.estado.idEstado).change();
-
                                 setTimeout(function () {
                                     $("#ddlmunicipio").val(primeraColonia.municipio.idMunicipio).change();
-
                                     setTimeout(function () {
                                         var ddlColonia = $("#ddlcolonia");
                                         ddlColonia.empty();
                                         ddlColonia.append("<option value='0'>Selecciona una colonia</option>");
-
                                         $.each(result.objects, function (i, colonia) {
                                             ddlColonia.append(
                                                     $('<option>', {
@@ -792,7 +821,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                     }, 500);
                                 }, 500);
                             }, 500);
-
                         } else {
                             alert("Código postal no encontrado o inválido");
                         }
@@ -803,198 +831,158 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 });
             }
         });
-
-
     </script>
 
     <script>
-        $(document).ready(function () {
 
-            $("#ddlpais2").change(function () {
-                var IdPais = $("#ddlpais2").val();
-                var ddlEstado = $("#ddlestado2");
+        // =========================
+        // PAIS → ESTADO
+        // =========================
+        $(document).on("change", ".ddlpais2", function () {
 
-                ddlEstado.empty();
-                ddlEstado.append("<option value='0'>Selecciona un Estado</option>");
+            let idPais = $(this).val();
+            let modal = $(this).closest(".modal");
 
-                if (IdPais != 0) {
-                    $.ajax({
-                        url: "/usuario/getEstadosByPais/" + IdPais,
-                        type: "GET",
-                        dataType: "json",
-                        success: function (result) {
+            let ddlEstado = modal.find(".ddlestado2");
+            let ddlMunicipio = modal.find(".ddlmunicipio2");
+            let ddlColonia = modal.find(".ddlcolonia2");
+            let txtCP = modal.find(".txtCodigoPostal2");
 
-                            if (result.correct) {
-                                $.each(result.objects, function (i, estado) {
-                                    ddlEstado.append(
-                                            "<option value='" + estado.idEstado + "'>" +
-                                            estado.nombreEstado +
-                                            "</option>"
-                                            );
-                                });
-                            } else {
-                                alert("Error: " + result.errorMessage);
-                            }
-                        },
-                        error: function () {
-                            alert("Error al obtener los estados");
-                        }
-                    });
-                }
-            });
-        });
+            ddlEstado.empty().append("<option value='0'>Selecciona un Estado</option>");
+            ddlMunicipio.empty().append("<option value='0'>Selecciona un Municipio</option>");
+            ddlColonia.empty().append("<option value='0'>Selecciona una Colonia</option>");
+            txtCP.val("");
 
-        $(document).ready(function () {
+            if (idPais != 0) {
 
-            $("#ddlestado2").change(function () {
+                $.getJSON("/usuario/getEstadosByPais/" + idPais, function (result) {
 
-                var IdEstado = $("#ddlestado2").val();
-                var ddlMunicipio = $("#ddlmunicipio2");
+                    if (result.correct) {
+                        $.each(result.objects, function (i, estado) {
 
-                ddlMunicipio.empty();
-                ddlMunicipio.append("<option value='0'>Selecciona un Municipio</option>");
-
-                if (IdEstado != 0) {
-                    $.ajax({
-                        url: "/usuario/getMunicipiosByEstado/" + IdEstado,
-                        type: "GET",
-                        dataType: "json",
-                        success: function (result) {
-
-                            if (result.correct) {
-                                $.each(result.objects, function (i, municipio) {
-                                    ddlMunicipio.append(
-                                            "<option value='" + municipio.idMunicipio + "'>" +
-                                            municipio.nombreMunicipio +
-                                            "</option>"
-                                            );
-                                });
-                            } else {
-                                alert("Error: " + result.errorMessage);
-                            }
-                        },
-                        error: function () {
-                            alert("Error al obtener municipios");
-                        }
-                    });
-                }
-            });
-        });
-
-        $(document).ready(function () {
-
-            $("#ddlmunicipio2").change(function () {
-
-                var IdMunicipio = $("#ddlmunicipio2").val();
-                var ddlColonia = $("#ddlcolonia2");
-
-                ddlColonia.empty();
-                ddlColonia.append("<option value='0'>Selecciona una Colonia</option>");
-
-                $("#txtCodigoPostal2").val("");
-
-                if (IdMunicipio != 0) {
-
-                    $.ajax({
-                        url: "/usuario/getColoniasByMunicipio/" + IdMunicipio,
-                        type: "GET",
-                        dataType: "json",
-                        success: function (result) {
-
-                            if (result.correct) {
-
-                                $.each(result.objects, function (i, colonia) {
-
-                                    ddlColonia.append(
-                                            "<option value='" + colonia.idColonia +
-                                            "' data-cp='" + colonia.codigoPostal + "'>" +
-                                            colonia.nombreColonia +
-                                            "</option>"
-                                            );
-
-                                });
-
-                            } else {
-                                alert("Error: " + result.errorMessage);
-                            }
-                        },
-                        error: function () {
-                            alert("Error al obtener colonias");
-                        }
-                    });
-                }
-            });
-        });
-
-        $(document).ready(function () {
-
-            $("#ddlcolonia2").change(function () {
-
-                var codigoPostal = $("#ddlcolonia2 option:selected").data("cp");
-
-                if (codigoPostal) {
-                    $("#txtCodigoPostal2").val(codigoPostal);
-                } else {
-                    $("#txtCodigoPostal2").val("");
-                }
-
-            });
-        });
-
-        $("#txtCodigoPostal2").change(function () {
-            var codigoPostal = $(this).val();
-
-            if (codigoPostal.length > 0) {
-                $.ajax({
-                    url: "/usuario/getDireccionByCodigoPostal/" + codigoPostal,
-                    type: "GET",
-                    dataType: "json",
-                    success: function (result) {
-                        if (result.correct && result.objects.length > 0) {
-
-                            var primeraColonia = result.objects[0];
-
-                            $("#ddlpais2").val(primeraColonia.municipio.estado.pais.idPais).change();
-
-                            setTimeout(function () {
-                                $("#ddlestado2").val(primeraColonia.municipio.estado.idEstado).change();
-
-                                setTimeout(function () {
-                                    $("#ddlmunicipio2").val(primeraColonia.municipio.idMunicipio).change();
-
-                                    setTimeout(function () {
-                                        var ddlColonia = $("#ddlcolonia2");
-                                        ddlColonia.empty();
-                                        ddlColonia.append("<option value='0'>Selecciona una colonia</option>");
-
-                                        $.each(result.objects, function (i, colonia) {
-                                            ddlColonia.append(
-                                                    $('<option>', {
-                                                        value: colonia.idColonia,
-                                                        text: colonia.nombreColonia,
-                                                        'data-cp': colonia.codigoPostal
-                                                    })
-                                                    );
-                                        });
-                                    }, 500);
-                                }, 500);
-                            }, 500);
-
-                        } else {
-                            alert("Código postal no encontrado o inválido");
-                        }
-                    },
-                    error: function () {
-                        alert("Error al consultar el código postal");
+                            ddlEstado.append(
+                                    "<option value='" + estado.idEstado + "'>" +
+                                    estado.nombreEstado +
+                                    "</option>"
+                                    );
+                        });
                     }
                 });
             }
         });
 
 
+        // =========================
+        // ESTADO → MUNICIPIO
+        // =========================
+        $(document).on("change", ".ddlestado2", function () {
+
+            let idEstado = $(this).val();
+            let modal = $(this).closest(".modal");
+
+            let ddlMunicipio = modal.find(".ddlmunicipio2");
+            let ddlColonia = modal.find(".ddlcolonia2");
+            let txtCP = modal.find(".txtCodigoPostal2");
+
+            ddlMunicipio.empty().append("<option value='0'>Selecciona un Municipio</option>");
+            ddlColonia.empty().append("<option value='0'>Selecciona una Colonia</option>");
+            txtCP.val("");
+
+            if (idEstado != 0) {
+
+                $.getJSON("/usuario/getMunicipiosByEstado/" + idEstado, function (result) {
+
+                    if (result.correct) {
+                        $.each(result.objects, function (i, municipio) {
+
+                            ddlMunicipio.append(
+                                    "<option value='" + municipio.idMunicipio + "'>" +
+                                    municipio.nombreMunicipio +
+                                    "</option>"
+                                    );
+                        });
+                    }
+                });
+            }
+        });
+
+
+        // =========================
+        // MUNICIPIO → COLONIA
+        // =========================
+        $(document).on("change", ".ddlmunicipio2", function () {
+
+            let idMunicipio = $(this).val();
+            let modal = $(this).closest(".modal");
+
+            let ddlColonia = modal.find(".ddlcolonia2");
+            let txtCP = modal.find(".txtCodigoPostal2");
+
+            ddlColonia.empty().append("<option value='0'>Selecciona una Colonia</option>");
+            txtCP.val("");
+
+            if (idMunicipio != 0) {
+
+                $.getJSON("/usuario/getColoniasByMunicipio/" + idMunicipio, function (result) {
+
+                    if (result.correct) {
+                        $.each(result.objects, function (i, colonia) {
+
+                            ddlColonia.append(
+                                    "<option value='" + colonia.idColonia +
+                                    "' data-cp='" + colonia.codigoPostal + "'>" +
+                                    colonia.nombreColonia +
+                                    "</option>"
+                                    );
+                        });
+                    }
+                });
+            }
+        });
+
+
+        // =========================
+        // COLONIA → CP
+        // =========================
+        $(document).on("change", ".ddlcolonia2", function () {
+
+            let modal = $(this).closest(".modal");
+            let txtCP = modal.find(".txtCodigoPostal2");
+
+            let codigoPostal = $(this).find(":selected").data("cp") || "";
+            txtCP.val(codigoPostal);
+        });
+
     </script>
 
     <script>
+        // ----- Validaciones Nombre y Apellidos -----
+        function SoloLetras(input, event) {
+
+            var valorCompleto = $(input).val() + event.key
+
+            var regex = /^[a-z A-Z]+$/;
+            if (regex.test(valorCompleto)) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+            } else {
+                event.preventDefault()
+                $(input).addClass("border border-danger")
+                $('#error' + input.id + '').text('Ingrese solo letras')
+            }
+
+        }
+
+        function SoloLetrasBlur(input) {
+
+            var regex = /^[a-z A-Z]+$/;
+            if (regex.test($(input).val())) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+                $(input).addClass("border border-success")
+            }
+        }
+
         // ----- Validaciones Nombre y Apellidos -----
         function SoloLetras(input, event) {
 
@@ -1023,5 +1011,199 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                 $(input).addClass("border border-success")
             }
         }
+
+        // ----- Validacion para UserName ------
+        function SoloLetrasNumeros(input, event) {
+
+            var valorCompleto = $(input).val() + event.key
+
+            var regex = /^[a-zA-Z0-9]+$/;
+
+            if (regex.test(valorCompleto)) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+            } else {
+                event.preventDefault()
+                $(input).addClass("border border-danger")
+                $('#error' + input.id + '').text('Ingresa solo numeros y letras')
+            }
+        }
+
+        function SoloLetrasNumerosBlur(input) {
+
+            var regex = /^[a-zA-Z0-9]+$/;
+
+            if (regex.test($(input).val())) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+                $(input).addClass("border border-success")
+            }
+        }
+
+
+        // ----- Validar CURP -----
+        function SoloMayusculasNumeros(input, event) {
+
+            var valorCompleto = $(input).val() + event.key
+
+            var regex = /^[A-Z0-9]+$/;
+
+            if (regex.test(valorCompleto)) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+            } else {
+                event.preventDefault()
+                $(input).addClass("border border-danger")
+                $('#error' + input.id + '').text('Ingresa solo mayusculas y numeros')
+            }
+        }
+
+        function SoloMayusculasNumerosBlur(input) {
+
+            var regex = /^[A-Z0-9]+$/;
+
+            if (regex.test($(input).val())) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+                $(input).addClass("border border-success")
+            }
+        }
+
+
+        // ---- Validar Telefono y Celular (NUMERO INTERIOR, EXTERIOR y Codigo Postal)----
+        function SoloNumeros(input, event) {
+
+            var valorCompleto = $(input).val() + event.key
+
+            var regex = /^[0-9]+$/;
+
+            if (regex.test(valorCompleto)) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+            } else {
+                event.preventDefault()
+                $(input).addClass("border border-danger")
+                $('#error' + input.id + '').text('Ingresa solo numeros')
+            }
+        }
+
+        function SoloNumerosBlur(input) {
+
+            var regex = /^[0-9]+$/;
+
+            if (regex.test($(input).val())) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+                $(input).addClass("border border-success")
+            }
+        }
+
+        // ---- Validar  CALLES ----
+        function SoloLetrasPunto(input, event) {
+
+            var valorCompleto = $(input).val() + event.key
+
+            var regex = /^[a-z A-Z0-9.-]+$/;
+
+            if (regex.test(valorCompleto)) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+            } else {
+                event.preventDefault()
+                $(input).addClass("border border-danger")
+                $('#error' + input.id + '').text('Ingresa caracteres validos')
+            }
+        }
+
+        function SoloLetrasPuntoBlur(input) {
+
+            var regex = /^[a-z A-Z0-9.-]+$/;
+
+            if (regex.test($(input).val())) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger')
+                $(input).addClass("border border-success")
+            }
+        }
+
+        //Validar correo
+        function CorreoBlur(input) {
+
+            var valorCompleto = $(input).val() + event.key
+
+            var regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+            if (regex.test($(input).val())) {
+                $('#error' + input.id + '').text('')
+                $(input).removeClass('border border-danger').addClass("border border-success")
+            } else {
+
+            }
+        }
+
+        // No permitir copiar ni pegar informacion
+        function BloquearAcciones(selector) {
+
+            $(selector).on('copy paste cut', function (event) {
+                event.preventDefault();
+
+                var idActual = $(this).attr('id');
+
+                $('#error' + idActual).text('Acción no permitida');
+
+            });
+        }
+        $(document).ready(function () {
+            BloquearAcciones('#NombreUsuario, #ApellidoPaterno, #ApellidoMaterno, #FechaNacimiento, #UserName, #Email, \n\
+                #Password, #Telefono, #Celular, #CURP, #txtCodigoPostal, #Calle, #NumeroInterior, #NumeroExterior');
+        });
+
+        //VALIDAR SELECT
+        function ValidarSelect(idSelect) {
+            var valor = $("#" + idSelect).val();
+
+            if (valor == "0") {
+
+                $("#error" + idSelect).text("Debes seleccionar una opción válida");
+                $("#" + idSelect).removeClass("border border-success");
+                $("#" + idSelect).addClass("border border-danger");
+
+                return false;
+
+            } else {
+
+                $("#error" + idSelect).text("");
+                $("#" + idSelect).removeClass("border border-danger");
+                $("#" + idSelect).addClass("border border-success");
+
+                return true;
+            }
+        }
+
+        //Validar la fecha
+        function ValidarFecha() {
+
+            var fecha = $("#exampleDateInput").val();
+
+            if (fecha === "") {
+
+                $("#errorFecha").text("Debes seleccionar una fecha");
+                $("#exampleDateInput")
+                        .removeClass("border-success")
+                        .addClass("border-danger");
+
+                return false;
+
+            } else {
+
+                $("#errorFecha").text("");
+                $("#exampleDateInput")
+                        .removeClass("border-danger")
+                        .addClass("border-success");
+
+                return true;
+            }
+        }
+
     </script>
 </html>
