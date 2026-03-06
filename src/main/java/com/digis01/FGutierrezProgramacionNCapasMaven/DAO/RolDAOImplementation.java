@@ -4,7 +4,6 @@ import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Result;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Rol;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import org.apache.catalina.valves.JDBCAccessLogValve;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.CallableStatementCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,7 +43,6 @@ public class RolDAOImplementation implements IRol {
                 
             });
             result.correct = true;
-            return result;
             
         } catch (Exception ex) {
             result.correct = false;

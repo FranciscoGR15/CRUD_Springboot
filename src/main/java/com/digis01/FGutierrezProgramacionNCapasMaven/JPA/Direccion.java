@@ -1,47 +1,32 @@
-package com.digis01.FGutierrezProgramacionNCapasMaven.ML;
+package com.digis01.FGutierrezProgramacionNCapasMaven.JPA;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import java.util.List;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
+@Entity
 public class Direccion {
 
+    @Id
+    @Column(name = "iddireccion")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idDireccion;
-    @NotBlank(message = "No deje el campo vacio")
-    @Size(min = 2, max = 50, message = "La calle debe contener de 3 a 5 caracteres")
+    @Column(name = "calle")
     private String calle;
+    @Column(name = "numerointerior")
     private String numeroInterior;
-    @NotBlank(message = "No deje este campo vacio")
+    @Column(name = "numeroexterior")
     private String numeroExterior;
-    public com.digis01.FGutierrezProgramacionNCapasMaven.ML.Usuario usuario;
-    public com.digis01.FGutierrezProgramacionNCapasMaven.ML.Colonia colonia;
-    private List<Estado> estados;
-    private List<Municipio> municipios;
-    private List<Colonia> colonias;
-
-    public List<Estado> getEstados() {
-        return estados;
-    }
-
-    public void setEstados(List<Estado> estados) {
-        this.estados = estados;
-    }
-
-    public List<Municipio> getMunicipios() {
-        return municipios;
-    }
-
-    public void setMunicipios(List<Municipio> municipios) {
-        this.municipios = municipios;
-    }
-
-    public List<Colonia> getColonias() {
-        return colonias;
-    }
-
-    public void setColonias(List<Colonia> colonias) {
-        this.colonias = colonias;
-    }
+    @ManyToOne
+    @JoinColumn(name = "idusuario")
+    public Usuario usuario;
+    @ManyToOne
+    @JoinColumn(name = "idcolonia")
+    public Colonia colonia;
 
     public Usuario getUsuario() {
         return usuario;

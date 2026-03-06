@@ -1,8 +1,4 @@
-<!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
--->
+
 <html xmlns:th="http://www.thymeleaf.org">
     <head>
         <title>Datos del Usuario</title>
@@ -59,7 +55,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                         <h5>Información del usuario</h5>
 
                         <p><strong>Nombre:</strong> <span th:text="${usuario.nombre} + ' ' + ${usuario.apellidoPaterno} + ' ' + ${usuario.apellidoMaterno}"></span></p>
-                        <p><strong>Fecha:</strong> <span th:text="${usuario.fechaNacimiento}"></span></p>
+                        <p><strong>Fecha:</strong> <span th:text="${#dates.format(usuario.fechaNacimiento, 'dd/MM/yyyy')}"></span></p>
                         <p><strong>Sexo:</strong> <span th:text="${usuario.sexo}"></span></p>
                         <p><strong>Email:</strong> <span th:text="${usuario.email}"></span></p>
                         <p><strong>Username:</strong> <span th:text="${usuario.userName}"></span></p>
@@ -149,8 +145,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
                             <div class="modal-body">
 
-                                <input type="hidden" 
-                                       th:field="*{idDireccion}">
+                                <input type="hidden" name="idDireccion"
+                                       th:value="*{idDireccion}">
 
                                 <input type="hidden" name="usuario.idUsuario"
                                        th:value="${usuario.idUsuario}">
@@ -174,7 +170,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                     <select th:id="'ddlestado2' + ${dir.idDireccion}" class="form-select ddlestado2"
                                             th:field="*{colonia.municipio.estado.idEstado}">
                                         <option value="0">Selecciona un Estado</option>
-                                        <option th:each="estado : ${estados}"
+                                        <option th:each="estado : *{estados}"
                                                 th:value="${estado.idEstado}"
                                                 th:text="${estado.nombreEstado}">
                                         </option>
@@ -187,7 +183,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                     <select th:id="'ddlmunicipio2' + ${dir.idDireccion}" class="form-select ddlmunicipio2"
                                             th:field="*{colonia.municipio.idMunicipio}">
                                         <option value="0">Selecciona tu municipio</option>
-                                        <option th:each="municipio : ${municipios}"
+                                        <option th:each="municipio : *{municipios}"
                                                 th:value="${municipio.idMunicipio}"
                                                 th:text="${municipio.nombreMunicipio}">
                                         </option>
@@ -200,9 +196,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
                                     <select th:id="'ddlcolonia2' + ${dir.idDireccion}" class="form-select ddlcolonia2"
                                             th:field="*{colonia.idColonia}">
                                         <option value="0">Selecciona tu colonia</option>
-                                        <option th:each="colonia : ${colonias}"
+                                        <option th:each="colonia : *{colonias}"
                                                 th:value="${colonia.idColonia}"
-                                                th:text="${colonia.nombreColonia}">
+                                                th:text="${colonia.nombreColonia}"
+                                                th:attr="data-cp=${colonia.codigoPostal}">
                                         </option>
                                     </select>
                                 </div>
@@ -543,301 +540,171 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-                                            function previewFile() {
-                                                const preview = document.getElementById("previewImagen");
-                                                const textPreview = document.getElementById("sinImagenText");
-                                                const file = document.getElementById("imagenFile").files[0];
-                                                const reader = new FileReader();
-                                                reader.onloadend = function () {
-                                                    preview.src = reader.result;
-                                                    preview.style.display = "block";
-                                                    textPreview.style.display = "none";
+                                            $(document).ready(function () {
+
+                                                $("#ddlpais").change(function () {
+                                                    var IdPais = $("#ddlpais").val();
+                                                    var ddlEstado = $("#ddlestado");
+                                                    ddlEstado.empty();
+                                                    ddlEstado.append("<option value='0'>Selecciona un Estado</option>");
+                                                    if (IdPais != 0) {
+                                                        $.ajax({
+                                                            url: "/usuario/getEstadosByPais/" + IdPais,
+                                                            type: "GET",
+                                                            dataType: "json",
+                                                            success: function (result) {
+
+                                                                if (result.correct) {
+                                                                    $.each(result.objects, function (i, estado) {
+                                                                        ddlEstado.append(
+                                                                                "<option value='" + estado.idEstado + "'>" +
+                                                                                estado.nombreEstado +
+                                                                                "</option>"
+                                                                                );
+                                                                    });
+                                                                } else {
+                                                                    alert("Error: " + result.errorMessage);
+                                                                }
+                                                            },
+                                                            error: function () {
+                                                                alert("Error al obtener los estados");
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                            $(document).ready(function () {
+
+                                                $("#ddlestado").change(function () {
+
+                                                    var IdEstado = $("#ddlestado").val();
+                                                    var ddlMunicipio = $("#ddlmunicipio");
+                                                    ddlMunicipio.empty();
+                                                    ddlMunicipio.append("<option value='0'>Selecciona un Municipio</option>");
+                                                    if (IdEstado != 0) {
+                                                        $.ajax({
+                                                            url: "/usuario/getMunicipiosByEstado/" + IdEstado,
+                                                            type: "GET",
+                                                            dataType: "json",
+                                                            success: function (result) {
+
+                                                                if (result.correct) {
+                                                                    $.each(result.objects, function (i, municipio) {
+                                                                        ddlMunicipio.append(
+                                                                                "<option value='" + municipio.idMunicipio + "'>" +
+                                                                                municipio.nombreMunicipio +
+                                                                                "</option>"
+                                                                                );
+                                                                    });
+                                                                } else {
+                                                                    alert("Error: " + result.errorMessage);
+                                                                }
+                                                            },
+                                                            error: function () {
+                                                                alert("Error al obtener municipios");
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                            $(document).ready(function () {
+
+                                                $("#ddlmunicipio").change(function () {
+
+                                                    var IdMunicipio = $("#ddlmunicipio").val();
+                                                    var ddlColonia = $("#ddlcolonia");
+                                                    ddlColonia.empty();
+                                                    ddlColonia.append("<option value='0'>Selecciona una Colonia</option>");
+                                                    $("#txtCodigoPostal").val("");
+                                                    if (IdMunicipio != 0) {
+
+                                                        $.ajax({
+                                                            url: "/usuario/getColoniasByMunicipio/" + IdMunicipio,
+                                                            type: "GET",
+                                                            dataType: "json",
+                                                            success: function (result) {
+
+                                                                if (result.correct) {
+
+                                                                    $.each(result.objects, function (i, colonia) {
+
+                                                                        ddlColonia.append(
+                                                                                "<option value='" + colonia.idColonia +
+                                                                                "' data-cp='" + colonia.codigoPostal + "'>" +
+                                                                                colonia.nombreColonia +
+                                                                                "</option>"
+                                                                                );
+                                                                    });
+                                                                } else {
+                                                                    alert("Error: " + result.errorMessage);
+                                                                }
+                                                            },
+                                                            error: function () {
+                                                                alert("Error al obtener colonias");
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                            $(document).ready(function () {
+
+                                                $("#ddlcolonia").change(function () {
+
+                                                    var codigoPostal = $("#ddlcolonia option:selected").data("cp");
+                                                    if (codigoPostal) {
+                                                        $("#txtCodigoPostal").val(codigoPostal);
+                                                    } else {
+                                                        $("#txtCodigoPostal").val("");
+                                                    }
+
+                                                });
+                                            });
+                                            $("#txtCodigoPostal").change(function () {
+                                                var codigoPostal = $(this).val();
+                                                if (codigoPostal.length > 0) {
+                                                    $.ajax({
+                                                        url: "/usuario/getDireccionByCodigoPostal/" + codigoPostal,
+                                                        type: "GET",
+                                                        dataType: "json",
+                                                        success: function (result) {
+                                                            if (result.correct && result.objects.length > 0) {
+
+                                                                var primeraColonia = result.objects[0];
+                                                                $("#ddlpais").val(primeraColonia.municipio.estado.pais.idPais).change();
+                                                                setTimeout(function () {
+                                                                    $("#ddlestado").val(primeraColonia.municipio.estado.idEstado).change();
+                                                                    setTimeout(function () {
+                                                                        $("#ddlmunicipio").val(primeraColonia.municipio.idMunicipio).change();
+                                                                        setTimeout(function () {
+                                                                            var ddlColonia = $("#ddlcolonia");
+                                                                            ddlColonia.empty();
+                                                                            ddlColonia.append("<option value='0'>Selecciona una colonia</option>");
+                                                                            $.each(result.objects, function (i, colonia) {
+                                                                                ddlColonia.append(
+                                                                                        $('<option>', {
+                                                                                            value: colonia.idColonia,
+                                                                                            text: colonia.nombreColonia,
+                                                                                            'data-cp': colonia.codigoPostal
+                                                                                        })
+                                                                                        );
+                                                                            });
+                                                                        }, 500);
+                                                                    }, 500);
+                                                                }, 500);
+                                                            } else {
+                                                                alert("Código postal no encontrado o inválido");
+                                                            }
+                                                        },
+                                                        error: function () {
+                                                            alert("Error al consultar el código postal");
+                                                        }
+                                                    });
                                                 }
-
-                                                if (file) {
-                                                    reader.readAsDataURL(file);
-                                                }
-                                            }
-
-
-
-                                            function UpdateFoto() {
-
-                                                Swal.fire({
-                                                    title: '¿Deseas actualizar la foto?',
-                                                    text: "Se modificará tu foto de perfil",
-                                                    icon: 'question',
-                                                    showCancelButton: true,
-                                                    confirmButtonColor: '#fd7e14',
-                                                    cancelButtonColor: '#d33',
-                                                    confirmButtonText: 'Actualizar',
-                                                    cancelButtonText: 'Cancelar'
-                                                }).then((result) => {
-
-                                                    if (result.isConfirmed) {
-                                                        document.getElementById("formImagen").submit();
-                                                    }
-
-                                                });
-                                            }
-
-                                            function UpdateUsuario(event) {
-                                                event.preventDefault();
-                                                Swal.fire({
-                                                    title: '¿Deseas actualizar la información?.',
-                                                    text: "Se modificará tu informacion principal.",
-                                                    icon: 'question',
-                                                    showCancelButton: true,
-                                                    confirmButtonColor: '#fd7e14',
-                                                    cancelButtonColor: '#d33',
-                                                    confirmButtonText: 'Actualizar',
-                                                    cancelButtonText: 'Cancelar'
-                                                }).then((result) => {
-                                                    if (result.isConfirmed) {
-                                                        event.target.submit();
-                                                    }
-
-                                                });
-                                                return false
-                                            }
-
-                                            function AddDireccion(event) {
-                                                event.preventDefault();
-                                                Swal.fire({
-                                                    title: '¿Desea agregar una nueva dirección?.',
-                                                    text: "Se agregara una nueva dirección.",
-                                                    icon: 'question',
-                                                    showCancelButton: true,
-                                                    confirmButtonColor: '#fd7e14',
-                                                    cancelButtonColor: '#d33',
-                                                    confirmButtonText: 'Agregar',
-                                                    cancelButtonText: 'Cancelar'
-                                                }).then((result) => {
-                                                    if (result.isConfirmed) {
-                                                        event.target.submit();
-                                                    }
-
-                                                });
-                                                return false
-                                            }
-
-                                            function DeleteDireccion(event) {
-                                                event.preventDefault();
-                                                Swal.fire({
-                                                    title: '¿Desea eliminar esta dirección?.',
-                                                    text: "Se elimino la dirección.",
-                                                    icon: 'question',
-                                                    showCancelButton: true,
-                                                    confirmButtonColor: '#fd7e14',
-                                                    cancelButtonColor: '#d33',
-                                                    confirmButtonText: 'Eliminar',
-                                                    cancelButtonText: 'Cancelar'
-                                                }).then((result) => {
-                                                    if (result.isConfirmed) {
-                                                        event.target.submit();
-                                                    }
-
-                                                });
-                                                return false
-                                            }
-
-                                            function UpdateDireccion(event) {
-                                                event.preventDefault();
-                                                Swal.fire({
-                                                    title: '¿Deseas actualizar la direccion?.',
-                                                    text: "Se modificará tu direccion.",
-                                                    icon: 'question',
-                                                    showCancelButton: true,
-                                                    confirmButtonColor: '#fd7e14',
-                                                    cancelButtonColor: '#d33',
-                                                    confirmButtonText: 'Actualizar',
-                                                    cancelButtonText: 'Cancelar'
-                                                }).then((result) => {
-                                                    if (result.isConfirmed) {
-                                                        event.target.submit();
-                                                    }
-
-                                                });
-                                                return false
-                                            }
-
-    </script>
-    <script th:if="${icon != null}">
-        Swal.fire({
-            icon: '[[${icon}]]',
-            title: '[[${title}]]',
-            text: '[[${text}]]'
-        });
-    </script>
-    <script>
-        $(document).ready(function () {
-
-            $("#ddlpais").change(function () {
-                var IdPais = $("#ddlpais").val();
-                var ddlEstado = $("#ddlestado");
-                ddlEstado.empty();
-                ddlEstado.append("<option value='0'>Selecciona un Estado</option>");
-                if (IdPais != 0) {
-                    $.ajax({
-                        url: "/usuario/getEstadosByPais/" + IdPais,
-                        type: "GET",
-                        dataType: "json",
-                        success: function (result) {
-
-                            if (result.correct) {
-                                $.each(result.objects, function (i, estado) {
-                                    ddlEstado.append(
-                                            "<option value='" + estado.idEstado + "'>" +
-                                            estado.nombreEstado +
-                                            "</option>"
-                                            );
-                                });
-                            } else {
-                                alert("Error: " + result.errorMessage);
-                            }
-                        },
-                        error: function () {
-                            alert("Error al obtener los estados");
-                        }
-                    });
-                }
-            });
-        });
-        $(document).ready(function () {
-
-            $("#ddlestado").change(function () {
-
-                var IdEstado = $("#ddlestado").val();
-                var ddlMunicipio = $("#ddlmunicipio");
-                ddlMunicipio.empty();
-                ddlMunicipio.append("<option value='0'>Selecciona un Municipio</option>");
-                if (IdEstado != 0) {
-                    $.ajax({
-                        url: "/usuario/getMunicipiosByEstado/" + IdEstado,
-                        type: "GET",
-                        dataType: "json",
-                        success: function (result) {
-
-                            if (result.correct) {
-                                $.each(result.objects, function (i, municipio) {
-                                    ddlMunicipio.append(
-                                            "<option value='" + municipio.idMunicipio + "'>" +
-                                            municipio.nombreMunicipio +
-                                            "</option>"
-                                            );
-                                });
-                            } else {
-                                alert("Error: " + result.errorMessage);
-                            }
-                        },
-                        error: function () {
-                            alert("Error al obtener municipios");
-                        }
-                    });
-                }
-            });
-        });
-        $(document).ready(function () {
-
-            $("#ddlmunicipio").change(function () {
-
-                var IdMunicipio = $("#ddlmunicipio").val();
-                var ddlColonia = $("#ddlcolonia");
-                ddlColonia.empty();
-                ddlColonia.append("<option value='0'>Selecciona una Colonia</option>");
-                $("#txtCodigoPostal").val("");
-                if (IdMunicipio != 0) {
-
-                    $.ajax({
-                        url: "/usuario/getColoniasByMunicipio/" + IdMunicipio,
-                        type: "GET",
-                        dataType: "json",
-                        success: function (result) {
-
-                            if (result.correct) {
-
-                                $.each(result.objects, function (i, colonia) {
-
-                                    ddlColonia.append(
-                                            "<option value='" + colonia.idColonia +
-                                            "' data-cp='" + colonia.codigoPostal + "'>" +
-                                            colonia.nombreColonia +
-                                            "</option>"
-                                            );
-                                });
-                            } else {
-                                alert("Error: " + result.errorMessage);
-                            }
-                        },
-                        error: function () {
-                            alert("Error al obtener colonias");
-                        }
-                    });
-                }
-            });
-        });
-        $(document).ready(function () {
-
-            $("#ddlcolonia").change(function () {
-
-                var codigoPostal = $("#ddlcolonia option:selected").data("cp");
-                if (codigoPostal) {
-                    $("#txtCodigoPostal").val(codigoPostal);
-                } else {
-                    $("#txtCodigoPostal").val("");
-                }
-
-            });
-        });
-        $("#txtCodigoPostal").change(function () {
-            var codigoPostal = $(this).val();
-            if (codigoPostal.length > 0) {
-                $.ajax({
-                    url: "/usuario/getDireccionByCodigoPostal/" + codigoPostal,
-                    type: "GET",
-                    dataType: "json",
-                    success: function (result) {
-                        if (result.correct && result.objects.length > 0) {
-
-                            var primeraColonia = result.objects[0];
-                            $("#ddlpais").val(primeraColonia.municipio.estado.pais.idPais).change();
-                            setTimeout(function () {
-                                $("#ddlestado").val(primeraColonia.municipio.estado.idEstado).change();
-                                setTimeout(function () {
-                                    $("#ddlmunicipio").val(primeraColonia.municipio.idMunicipio).change();
-                                    setTimeout(function () {
-                                        var ddlColonia = $("#ddlcolonia");
-                                        ddlColonia.empty();
-                                        ddlColonia.append("<option value='0'>Selecciona una colonia</option>");
-                                        $.each(result.objects, function (i, colonia) {
-                                            ddlColonia.append(
-                                                    $('<option>', {
-                                                        value: colonia.idColonia,
-                                                        text: colonia.nombreColonia,
-                                                        'data-cp': colonia.codigoPostal
-                                                    })
-                                                    );
-                                        });
-                                    }, 500);
-                                }, 500);
-                            }, 500);
-                        } else {
-                            alert("Código postal no encontrado o inválido");
-                        }
-                    },
-                    error: function () {
-                        alert("Error al consultar el código postal");
-                    }
-                });
-            }
-        });
+                                            });
     </script>
 
     <script>
-
-        // =========================
         // PAIS → ESTADO
-        // =========================
         $(document).on("change", ".ddlpais2", function () {
 
             let idPais = $(this).val();
@@ -871,10 +738,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             }
         });
 
-
-        // =========================
         // ESTADO → MUNICIPIO
-        // =========================
         $(document).on("change", ".ddlestado2", function () {
 
             let idEstado = $(this).val();
@@ -906,10 +770,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
             }
         });
 
-
-        // =========================
         // MUNICIPIO → COLONIA
-        // =========================
         $(document).on("change", ".ddlmunicipio2", function () {
 
             let idMunicipio = $(this).val();
@@ -941,18 +802,146 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
         });
 
 
-        // =========================
         // COLONIA → CP
-        // =========================
         $(document).on("change", ".ddlcolonia2", function () {
-
             let modal = $(this).closest(".modal");
             let txtCP = modal.find(".txtCodigoPostal2");
 
-            let codigoPostal = $(this).find(":selected").data("cp") || "";
+            let selectedOption = $(this).find(":selected");
+            let codigoPostal = selectedOption.data("cp") || "";
+
+            console.log("Colonia seleccionada:", selectedOption.val(), "CP encontrado:", codigoPostal);
+
             txtCP.val(codigoPostal);
         });
 
+    </script>
+    <script>
+        function previewFile() {
+            const preview = document.getElementById("previewImagen");
+            const textPreview = document.getElementById("sinImagenText");
+            const file = document.getElementById("imagenFile").files[0];
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                preview.src = reader.result;
+                preview.style.display = "block";
+                textPreview.style.display = "none";
+            }
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+
+
+        function UpdateFoto() {
+
+            Swal.fire({
+                title: '¿Deseas actualizar la foto?',
+                text: "Se modificará tu foto de perfil",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#fd7e14',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Actualizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+                    document.getElementById("formImagen").submit();
+                }
+
+            });
+        }
+
+        function UpdateUsuario(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: '¿Deseas actualizar la información?.',
+                text: "Se modificará tu informacion principal.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#fd7e14',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Actualizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    event.target.submit();
+                }
+
+            });
+            return false
+        }
+
+        function AddDireccion(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: '¿Desea agregar una nueva dirección?.',
+                text: "Se agregara una nueva dirección.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#fd7e14',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Agregar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    event.target.submit();
+                }
+
+            });
+            return false
+        }
+
+        function DeleteDireccion(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: '¿Desea eliminar esta dirección?.',
+                text: "Se elimino la dirección.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#fd7e14',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    event.target.submit();
+                }
+
+            });
+            return false
+        }
+
+        function UpdateDireccion(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: '¿Deseas actualizar la direccion?.',
+                text: "Se modificará tu direccion.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#fd7e14',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Actualizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    event.target.submit();
+                }
+
+            });
+            return false
+        }
+
+    </script>
+    <script th:if="${icon != null}">
+        Swal.fire({
+            icon: '[[${icon}]]',
+            title: '[[${title}]]',
+            text: '[[${text}]]'
+        });
     </script>
 
     <script>

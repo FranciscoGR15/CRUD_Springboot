@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     </head>
     <body>
 
@@ -28,7 +29,7 @@
             <div class="card shadow-sm mt-4">
                 <div class="card-body">
 
-                    <form th:action="@{/usuario/getAll}" method="get">
+                    <form th:action="@{/usuario}" method="get">
 
                         <div class="row g-3">
 
@@ -99,7 +100,7 @@
                     </thead>
 
                     <tbody>
-                        <tr th:each="usuario : ${usuarios}">
+                        <tr th:each="usuario : ${usuarios}" th:id="'row_' + ${usuario.idUsuario}" th:classappend="${usuario.status == 0} ? 'table-danger' : ''">
 
                             <!-- IMAGEN -->
                             <td class="text-center">
@@ -113,8 +114,11 @@
                                      class="rounded-circle border"
                                      style="width:80px; height:80px; object-fit:cover;" />
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" checked>
-                                    <label class="form-check-label" for="flexSwitchCheckChecked">Status</label>
+                                    <input class="form-check-input status-switch" type="checkbox" 
+                                           th:id="'switch_' + ${usuario.idUsuario}"
+                                           th:checked="${usuario.status == 1}"
+                                           th:data-id="${usuario.idUsuario}">
+                                    <label class="form-check-label">Activo</label>
                                 </div>
                             </td>
 
@@ -210,33 +214,65 @@
 
             </div>
 
+            <script>
+                $(document).ready(function () {
 
+                    $(".status-switch").change(function () {
+
+                        let idUsuario = $(this).data("id");
+                        let status = $(this).is(":checked") ? 1 : 0;
+                        let row = $("#row_" + idUsuario);
+
+                        $.ajax({
+                            url: "/usuario/statusUpdate",
+                            type: "POST",
+                            data: {
+                                idUsuario: idUsuario,
+                                status: status
+                            },
+                            success: function (response) {
+
+                                if (status === 0) {
+                                    row.addClass("table-danger");
+                                } else {
+                                    row.removeClass("table-danger");
+                                }
+
+                            },
+                            error: function () {
+                                alert("Error al actualizar el status");
+                            }
+                        });
+
+                    });
+
+                });
+            </script>
         </div>
-
     </body>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-                                              function confirmDelete(event) {
-                                                  event.preventDefault();
+                function confirmDelete(event) {
+                    event.preventDefault();
 
-                                                  Swal.fire({
-                                                      title: '¿Estás seguro?',
-                                                      text: 'Esta acción eliminará el usuario y todas sus direcciones.',
-                                                      icon: 'warning',
-                                                      showCancelButton: true,
-                                                      confirmButtonText: 'Sí, eliminar',
-                                                      cancelButtonText: 'Cancelar'
-                                                  }).then((result) => {
-                                                      if (result.isConfirmed) {
-                                                          event.target.submit();
-                                                      }
-                                                  });
+                    Swal.fire({
+                        title: '¿Estás seguro?',
+                        text: 'Esta acción eliminará el usuario y todas sus direcciones.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            event.target.submit();
+                        }
+                    });
 
-                                                  return false;
-                                              }
+                    return false;
+                }
 
 
 

@@ -1,10 +1,25 @@
-package com.digis01.FGutierrezProgramacionNCapasMaven.ML;
+package com.digis01.FGutierrezProgramacionNCapasMaven.JPA;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+@Entity
 public class Municipio {
 
+    @Id
+    @Column(name = "idmunicipio")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int idMunicipio;
+    @Column(name = "nombremunicipio")
     private String nombreMunicipio;
-    public com.digis01.FGutierrezProgramacionNCapasMaven.ML.Estado estado;
+    @ManyToOne
+    @JoinColumn(name = "idestado")
+    public Estado estado;
 
     //GETTER Y SETTER IdColonia
     public int getIdMunicipio() {
@@ -31,4 +46,5 @@ public class Municipio {
     public void setEstado(Estado estado) {
         this.estado = estado;
     }
+
 }

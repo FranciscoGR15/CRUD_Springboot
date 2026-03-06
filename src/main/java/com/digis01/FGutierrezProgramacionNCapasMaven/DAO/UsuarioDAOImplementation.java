@@ -509,7 +509,6 @@ public class UsuarioDAOImplementation implements IUsuario {
             result.errorMessage = ex.getLocalizedMessage();
             result.ex = ex;
         }
-
         return result;
     }
 

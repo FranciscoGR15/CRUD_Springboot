@@ -1,53 +1,59 @@
-package com.digis01.FGutierrezProgramacionNCapasMaven.ML;
+package com.digis01.FGutierrezProgramacionNCapasMaven.JPA;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import org.springframework.format.annotation.DateTimeFormat;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+@Entity
 public class Usuario {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "idusuario")
     private int idUsuario;
+    @Lob
+    @Column(name = "imagen")
     private String imagen;
-    @NotBlank(message = "El username es obligatorio")
-    @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
+    @Column(name = "username")
     private String userName;
-    @NotBlank(message = "El nombre es obligatorio")
-    @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
+    @Column(name = "nombre")
     private String nombre;
-    @NotBlank(message = "El apellido paterno es obligatorio")
-    @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
+    @Column(name = "apellidopaterno")
     private String apellidoPaterno;
-    @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
+    @Column(name = "apellidomaterno")
     private String apellidoMaterno;
-    @NotBlank(message = "El email es obligatorio")
-    @Email(message = "Formato de email inválido")
+    @Column(name = "email")
     private String email;
-    @NotBlank(message = "El password es obligatorio")
-    @Size(min = 3, max = 50, message = "Debe tener entre 3 y 50 caracteres")
+    @Column(name = "password")
     private String password;
-    @NotNull(message = "La fecha de nacimiento es obligatoria")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date fechaNacimiento;
+    @Column(name = "fechanacimiento")
+    private LocalDate fechaNacimiento;
+    @Column(name = "sexo")
     private String sexo;
-    @Size(min = 8, max = 20, message = "Debe tener entre 8 y 20 caracteres")
-    @NotBlank(message = "El telefono es obligatorio")
+    @Column(name = "telefono")
     private String telefono;
+    @Column(name = "celular")
     private String celular;
-    @Size(min = 10, max = 50, message = "Debe tener entre 10 y 50 caracteres")
+    @Column(name = "curp")
     private String CURP;
+    @Column(name = "status")
     private int status;
-    @Valid
+    @ManyToOne
+    @JoinColumn(name = "idrol")
     public Rol rol;
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     public List<Direccion> direcciones;
 
-    
-    
     public Usuario() {
         this.direcciones = new ArrayList<>();
     }
@@ -124,11 +130,11 @@ public class Usuario {
     }
 
     //GETTER Y SETTER (fechaNacimiento)
-    public Date getFechaNacimiento() {
+    public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setFechaNacimiento(Date fechaNacimiento) {
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 
@@ -167,12 +173,12 @@ public class Usuario {
     public void setCURP(String CURP) {
         this.CURP = CURP;
     }
-    
-    public int getStatus(){
+
+    public int getStatus() {
         return status;
     }
-    
-    public void setStatus(int status){
+
+    public void setStatus(int status) {
         this.status = status;
     }
 

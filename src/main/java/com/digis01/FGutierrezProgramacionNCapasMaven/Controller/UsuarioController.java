@@ -1,13 +1,21 @@
 package com.digis01.FGutierrezProgramacionNCapasMaven.Controller;
 
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.ColoniaDAOImplementation;
+import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.ColoniaDAOJPAImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.DirCodigoPostalDAOImplementation;
+import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.DirCodigoPostalDAOJPAImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.DireccionDAOImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.EstadoDAOImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.MunicipioDAOImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.PaisDAOImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.RolDAOImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.UsuarioDAOImplementation;
+import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.UsuarioDAOJPAImplementation;
+import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.DireccionDAOJPAImplementation;
+import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.EstadoDAOJPAImplementation;
+import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.MunicipioDAOJPAImplementation;
+import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.PaisDAOJPAImplementation;
+import com.digis01.FGutierrezProgramacionNCapasMaven.DAO.RolDAOJPAImplementation;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Colonia;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.Direccion;
 import com.digis01.FGutierrezProgramacionNCapasMaven.ML.ErroresArchivo;
@@ -24,7 +32,6 @@ import jakarta.validation.Valid;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
@@ -43,11 +50,11 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -87,17 +94,70 @@ public class UsuarioController {
     private DireccionDAOImplementation direccionDAOImplementation;
 
     @Autowired
+    private UsuarioDAOJPAImplementation usuarioDAOJPAImplementation;
+
+    @Autowired
+    private DireccionDAOJPAImplementation direccionDAOJPAImplementation;
+
+    @Autowired
+    private PaisDAOJPAImplementation paisDAOJPAImplementation;
+
+    @Autowired
     private ValidationService validationService;
+
+    @Autowired
+    private RolDAOJPAImplementation rolDAOJPAImplementation;
+
+    @Autowired
+    private ColoniaDAOJPAImplementation coloniaDAOJPAImplementation;
+
+    @Autowired
+    private MunicipioDAOJPAImplementation municipioDAOJPAImplementation;
+
+    @Autowired
+    private EstadoDAOJPAImplementation estadoDAOJPAImplementation;
+
+    @Autowired
+    private DirCodigoPostalDAOJPAImplementation dirCodigoPostalDAOJPAImplementation;
 
     //------------------ TABLA DE DATOS ------------------------
     @GetMapping
-    public String Index(Model model) {
+    public String Index(@RequestParam(name = "nombre", required = false) String nombre,
+            @RequestParam(name = "apellidoPaterno", required = false) String apellidoPaterno,
+            @RequestParam(name = "apellidoMaterno", required = false) String apellidoMaterno,
+            @RequestParam(name = "idRol", required = false, defaultValue = "0") Integer idRol,
+            Model model) {
 
-        Result result = usuarioDAOImplementation.GetAll();
+        Result result = usuarioDAOJPAImplementation.GetAllFiltrado(
+                nombre,
+                apellidoPaterno,
+                apellidoMaterno,
+                (idRol != null && idRol != 0) ? idRol : null
+        );
 
         model.addAttribute("usuarios", result.objects);
-        return "GetAll";
+        // Lista de roles para el dropdown rol
+        Result rolesResult = rolDAOJPAImplementation.GetAll();
+        model.addAttribute("roles", rolesResult.objects);
+        model.addAttribute("param", new ParamFilter(nombre, apellidoPaterno, apellidoMaterno, idRol));
+        model.addAttribute("usuarios", result.objects);
 
+        return "GetAll";
+    }
+
+    public static class ParamFilter {
+
+        public String nombre;
+        public String apellidoPaterno;
+        public String apellidoMaterno;
+        public Integer idRol;
+
+        public ParamFilter(String nombre, String apellidoPaterno, String apellidoMaterno, Integer idRol) {
+            this.nombre = nombre;
+            this.apellidoPaterno = apellidoPaterno;
+            this.apellidoMaterno = apellidoMaterno;
+            this.idRol = idRol;
+        }
     }
 
     //------------ FORMULARIO VACIO PARA NUEVO USUARIO --------------
@@ -115,55 +175,10 @@ public class UsuarioController {
         usuario.getDirecciones().add(direccion);
 
         model.addAttribute("usuario", usuario);
-        model.addAttribute("roles", rolDAOImplementation.GetAll().objects);
-        model.addAttribute("paises", paisDAOImplementation.GetAll().objects);
+        model.addAttribute("roles", rolDAOJPAImplementation.GetAll().objects);
+        model.addAttribute("paises", paisDAOJPAImplementation.GetAll().objects);
 
         return "Formulario";
-    }
-
-    //------------------ TABLA DE DATOS CON FILTRO ------------------------
-    @GetMapping("/getAll")
-    public String GetAllFiltrado(
-            @RequestParam(name = "nombre", required = false) String nombre,
-            @RequestParam(name = "apellidoPaterno", required = false) String apellidoPaterno,
-            @RequestParam(name = "apellidoMaterno", required = false) String apellidoMaterno,
-            @RequestParam(name = "idRol", required = false, defaultValue = "0") Integer idRol,
-            Model model) {
-
-        Result result = usuarioDAOImplementation.GetAllFiltrado(
-                nombre,
-                apellidoPaterno,
-                apellidoMaterno,
-                (idRol != null && idRol != 0) ? idRol : null
-        );
-
-        // Cargamos la lista de usuarios filtrada
-        model.addAttribute("usuarios", result.objects);
-
-        // Lista de roles para el dropdown del formulario
-        Result rolesResult = rolDAOImplementation.GetAll();
-        model.addAttribute("roles", rolesResult.objects);
-
-        // Mantener los valores del formulario
-        model.addAttribute("param", new ParamFilter(nombre, apellidoPaterno, apellidoMaterno, idRol));
-
-        return "GetAll";
-    }
-
-    // Clase auxiliar para mantener los valores del formulario
-    public static class ParamFilter {
-
-        public String nombre;
-        public String apellidoPaterno;
-        public String apellidoMaterno;
-        public Integer idRol;
-
-        public ParamFilter(String nombre, String apellidoPaterno, String apellidoMaterno, Integer idRol) {
-            this.nombre = nombre;
-            this.apellidoPaterno = apellidoPaterno;
-            this.apellidoMaterno = apellidoMaterno;
-            this.idRol = idRol;
-        }
     }
 
     //--------------- METODO POST (AGREGAR) --------------------
@@ -175,8 +190,8 @@ public class UsuarioController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("usuario", usuario);
-            model.addAttribute("roles", rolDAOImplementation.GetAll().objects);
-            model.addAttribute("paises", paisDAOImplementation.GetAll().objects);
+            model.addAttribute("roles", rolDAOJPAImplementation.GetAll().objects);
+            model.addAttribute("paises", paisDAOJPAImplementation.GetAll().objects);
             return "Formulario";
         }
 
@@ -195,12 +210,12 @@ public class UsuarioController {
 
         }
 
-        Result result = usuarioDAOImplementation.UsuarioDireccionAddSP(usuario);
+        Result result = usuarioDAOJPAImplementation.UsuarioDireccionAdd(usuario);
         if (!result.correct) {
             model.addAttribute("error", "Error al guardar usuario: " + result.errorMessage);
             model.addAttribute("usuario", usuario);
-            model.addAttribute("roles", rolDAOImplementation.GetAll().objects);
-            model.addAttribute("paises", paisDAOImplementation.GetAll().objects);
+            model.addAttribute("roles", rolDAOJPAImplementation.GetAll().objects);
+            model.addAttribute("paises", paisDAOJPAImplementation.GetAll().objects);
             return "Formulario";
         }
 
@@ -215,7 +230,7 @@ public class UsuarioController {
         direccion.setUsuario(new Usuario());
         direccion.getUsuario().setIdUsuario(idUsuario);
 
-        Result result = direccionDAOImplementation.DireccionAddSP(direccion);
+        Result result = direccionDAOJPAImplementation.DireccionAddSP(direccion);
 
         if (result.correct) {
             redirectAttributes.addFlashAttribute("icon", "success");
@@ -234,66 +249,69 @@ public class UsuarioController {
     @GetMapping("/perfil/{idUsuario}")
     public String perfilUsuario(@PathVariable int idUsuario, Model model) {
 
-        Result result = usuarioDAOImplementation.GetById(idUsuario);
+        Result result = usuarioDAOJPAImplementation.GetById(idUsuario);
         Usuario usuario = (Usuario) result.object;
 
         if (usuario.getDirecciones() == null) {
             usuario.setDirecciones(new ArrayList<>());
         }
 
-        if (usuario.getDirecciones().isEmpty()) {
-
-            Direccion direccion = new Direccion();
-            Colonia colonia = new Colonia();
-            Municipio municipio = new Municipio();
-            Estado estado = new Estado();
-            Pais pais = new Pais();
-
-            estado.setPais(pais);
-            municipio.setEstado(estado);
-            colonia.setMunicipio(municipio);
-            direccion.setColonia(colonia);
-
-            usuario.getDirecciones().add(direccion);
+        // Inicializar jerarquía de todas las direcciones para Thymeleaf
+        for (Direccion dir : usuario.getDirecciones()) {
+            if (dir.getColonia() == null) {
+                dir.setColonia(new Colonia());
+            }
+            if (dir.getColonia().getMunicipio() == null) {
+                dir.getColonia().setMunicipio(new Municipio());
+            }
+            if (dir.getColonia().getMunicipio().getEstado() == null) {
+                dir.getColonia().getMunicipio().setEstado(new Estado());
+            }
+            if (dir.getColonia().getMunicipio().getEstado().getPais() == null) {
+                dir.getColonia().getMunicipio().getEstado().setPais(new Pais());
+            }
         }
 
-        Direccion direccion = usuario.getDirecciones().get(0);
+        // Si hay al menos una dirección, cargamos selects dependientes
+        for (Direccion direccion : usuario.getDirecciones()) {
 
-        int idPais = direccion.getColonia()
-                .getMunicipio()
-                .getEstado()
-                .getPais()
-                .getIdPais();
+            int idPais = direccion.getColonia().getMunicipio().getEstado().getPais().getIdPais();
+            int idEstado = direccion.getColonia().getMunicipio().getEstado().getIdEstado();
+            int idMunicipio = direccion.getColonia().getMunicipio().getIdMunicipio();
 
-        int idEstado = direccion.getColonia()
-                .getMunicipio()
-                .getEstado()
-                .getIdEstado();
+            direccion.setEstados(
+                    (List<Estado>) (List<?>) estadoDAOJPAImplementation
+                            .GetEstadosByPais(idPais).objects);
 
-        int idMunicipio = direccion.getColonia()
-                .getMunicipio()
-                .getIdMunicipio();
+            direccion.setMunicipios(
+                    (List<Municipio>) (List<?>) municipioDAOJPAImplementation
+                            .GetMunicipiosByEstado(idEstado).objects);
 
-        model.addAttribute("estados",
-                estadoDAOImplementation.GetEstadosByPais(idPais).objects);
+            direccion.setColonias(
+                    (List<Colonia>) (List<?>) coloniaDAOJPAImplementation
+                            .GetColoniaByMunicipio(idMunicipio).objects);
+        }
 
-        model.addAttribute("municipios",
-                municipioDAOImplementation.GetMunicipiosByEstado(idEstado).objects);
-
-        model.addAttribute("colonias",
-                coloniaDAOImplementation.GetColoniaByMunicipio(idMunicipio).objects);
-
-        //  SOLO crear direccionNueva limpia
+        // Dirección vacía para modal "Agregar"
         Direccion direccionNueva = new Direccion();
-        direccionNueva.setColonia(new Colonia());
-        direccionNueva.getColonia().setMunicipio(new Municipio());
-        direccionNueva.getColonia().getMunicipio().setEstado(new Estado());
-        direccionNueva.getColonia().getMunicipio().getEstado().setPais(new Pais());
 
-        model.addAttribute("direccionNueva", direccionNueva);
-        model.addAttribute("usuario", usuario);
-        model.addAttribute("roles", rolDAOImplementation.GetAll().objects);
-        model.addAttribute("paises", paisDAOImplementation.GetAll().objects);
+        direccionNueva.setColonia(
+                new Colonia());
+        direccionNueva.getColonia()
+                .setMunicipio(new Municipio());
+        direccionNueva.getColonia()
+                .getMunicipio().setEstado(new Estado());
+        direccionNueva.getColonia()
+                .getMunicipio().getEstado().setPais(new Pais());
+
+        model.addAttribute(
+                "direccionNueva", direccionNueva);
+        model.addAttribute(
+                "usuario", usuario);
+        model.addAttribute(
+                "roles", rolDAOJPAImplementation.GetAll().objects);
+        model.addAttribute(
+                "paises", paisDAOJPAImplementation.GetAll().objects);
 
         return "UsuarioPerfil";
     }
@@ -302,7 +320,7 @@ public class UsuarioController {
     @PostMapping("/updateUsuario")
     public String updateUsuario(@ModelAttribute Usuario usuario, RedirectAttributes redirectAttributes) {
 
-        Result result = usuarioDAOImplementation.UsuarioUpdateSP(usuario);
+        Result result = usuarioDAOJPAImplementation.UsuarioUpdate(usuario);
 
         if (result.correct) {
             redirectAttributes.addFlashAttribute("icon", "success");
@@ -335,7 +353,7 @@ public class UsuarioController {
                     usuario.setIdUsuario(idUsuario);
                     usuario.setImagen(base64);
 
-                    Result result = usuarioDAOImplementation.UsuarioImageUpdateSP(usuario);
+                    Result result = usuarioDAOJPAImplementation.UsuarioImageUpdate(usuario);
 
                     if (result.correct) {
                         redirectAttributes.addFlashAttribute("icon", "success");
@@ -366,7 +384,7 @@ public class UsuarioController {
         Usuario usuario = new Usuario();
         usuario.setIdUsuario(idUsuario);
 
-        Result result = usuarioDAOImplementation.UsuarioDeleteSP(usuario);
+        Result result = usuarioDAOJPAImplementation.UsuarioDireccionDelete(usuario);
 
         if (result.correct) {
             redirectAttributes.addFlashAttribute("icon", "success");
@@ -382,11 +400,11 @@ public class UsuarioController {
         return "redirect:/usuario";
     }
 
-    /*-------------- VISA PARA EDITAR FORMULARIO COMPLETO --------------------*/
+    /*-------------- VISTA PARA EDITAR FORMULARIO COMPLETO --------------------*/
     @GetMapping("/form/{IdUsuario}")
     public String Form(@PathVariable int IdUsuario, Model model) {
 
-        Result result = usuarioDAOImplementation.GetById(IdUsuario);
+        Result result = usuarioDAOJPAImplementation.GetById(IdUsuario);
 
         Usuario usuario = (Usuario) result.object;
 
@@ -428,17 +446,17 @@ public class UsuarioController {
                 .getIdMunicipio();
 
         model.addAttribute("estados",
-                estadoDAOImplementation.GetEstadosByPais(idPais).objects);
+                estadoDAOJPAImplementation.GetEstadosByPais(idPais).objects);
 
         model.addAttribute("municipios",
-                municipioDAOImplementation.GetMunicipiosByEstado(idEstado).objects);
+                municipioDAOJPAImplementation.GetMunicipiosByEstado(idEstado).objects);
 
         model.addAttribute("colonias",
-                coloniaDAOImplementation.GetColoniaByMunicipio(idMunicipio).objects);
+                coloniaDAOJPAImplementation.GetColoniaByMunicipio(idMunicipio).objects);
 
         model.addAttribute("usuario", usuario);
-        model.addAttribute("roles", rolDAOImplementation.GetAll().objects);
-        model.addAttribute("paises", paisDAOImplementation.GetAll().objects);
+        model.addAttribute("roles", rolDAOJPAImplementation.GetAll().objects);
+        model.addAttribute("paises", paisDAOJPAImplementation.GetAll().objects);
 
         return "Formulario";
     }
@@ -449,11 +467,12 @@ public class UsuarioController {
             RedirectAttributes redirectAttributes) {
 
         Usuario usuario = new Usuario();
+        usuario.getIdUsuario();
 
         Direccion direccion = new Direccion();
         direccion.setIdDireccion(idDireccion);
 
-        Result result = direccionDAOImplementation.DeleteDireccionSP(idDireccion);
+        Result result = direccionDAOJPAImplementation.DeleteDireccionSP(idDireccion);
 
         if (result.correct) {
             redirectAttributes.addFlashAttribute("icon", "success");
@@ -473,20 +492,17 @@ public class UsuarioController {
     @PostMapping("/updateDireccion")
     public String updateDireccion(@ModelAttribute Direccion direccion, RedirectAttributes redirectAttributes) {
 
-        if (direccion.getColonia() == null) {
-            direccion.setColonia(new Colonia());
-        }
-        if (direccion.getColonia().getMunicipio() == null) {
-            direccion.getColonia().setMunicipio(new Municipio());
-        }
-        if (direccion.getColonia().getMunicipio().getEstado() == null) {
-            direccion.getColonia().getMunicipio().setEstado(new Estado());
-        }
-        if (direccion.getColonia().getMunicipio().getEstado().getPais() == null) {
-            direccion.getColonia().getMunicipio().getEstado().setPais(new Pais());
+        if (direccion.getColonia() == null
+                || direccion.getColonia().getIdColonia() == 0) {
+
+            redirectAttributes.addFlashAttribute("icon", "error");
+            redirectAttributes.addFlashAttribute("title", "Error");
+            redirectAttributes.addFlashAttribute("text", "Debe seleccionar una colonia válida.");
+
+            return "redirect:/usuario/perfil/" + direccion.getUsuario().getIdUsuario();
         }
 
-        Result result = direccionDAOImplementation.DireccionUpdateSP(direccion);
+        Result result = direccionDAOJPAImplementation.DireccionUpdateSP(direccion);
 
         if (result.correct) {
             redirectAttributes.addFlashAttribute("icon", "success");
@@ -498,11 +514,7 @@ public class UsuarioController {
             redirectAttributes.addFlashAttribute("text", "No fue posible actualizar la información: " + result.errorMessage);
         }
 
-        int idUsuario = direccion.getUsuario() != null ? direccion.getUsuario().getIdUsuario() : 0;
-        if (idUsuario == 0) {
-            idUsuario = 1;
-        }
-        return "redirect:/usuario/perfil/" + idUsuario;
+        return "redirect:/usuario/perfil/" + direccion.getUsuario().getIdUsuario();
     }
 
     /* ------------ CARGA MASIVA -------------- */
@@ -740,7 +752,7 @@ public class UsuarioController {
             usuarios = LecturaArchivoExcel(new File(rutaArchivo));
         }
 
-        Result result = usuarioDAOImplementation.UsuarioDireccionAddAll(usuarios);
+        Result result = usuarioDAOJPAImplementation.UsuarioDireccionAddAll(usuarios);
 
         session.removeAttribute("ruta_" + uuidCarga);
         session.removeAttribute("tipo_" + uuidCarga);
@@ -758,25 +770,27 @@ public class UsuarioController {
         return "redirect:/usuario";
     }
 
-    
-    
     /* --------------- MODIFICAR BOTON STATUS ---------------*/
-    @PostMapping("/statusUpate")
-    public String UpdateStatus(@ModelAttribute Usuario usuario, RedirectAttributes redirectAttributes){
-        
-        Result result = usuarioDAOImplementation.UsuarioStatusUpdateSP(usuario);
+    @PostMapping("/statusUpdate")
+    @ResponseBody
+    public ResponseEntity<?> updateStatus(@RequestParam int idUsuario, @RequestParam int status) {
 
-        return "usuario";
+        Usuario usuario = new Usuario();
+        usuario.setIdUsuario(idUsuario);
+        usuario.setStatus(status);
+
+        Result result = usuarioDAOJPAImplementation.UsuarioStatusUpdate(usuario);
+
+        return ResponseEntity.ok("usuario");
     }
-    
-    
+
     /*------------- CONTROLLER PARA CARGAR LOS SELECT ---------------*/
     //-------------- CONTROLLER PARA SELECT - PAIS ------------------
     @GetMapping("/getEstadosByPais/{IdPais}")
     @ResponseBody
     public Result getEstadosByPais(@PathVariable("IdPais") int IdPais) {
 
-        Result result = estadoDAOImplementation.GetEstadosByPais(IdPais);
+        Result result = estadoDAOJPAImplementation.GetEstadosByPais(IdPais);
 
         return result;
     }
@@ -786,7 +800,7 @@ public class UsuarioController {
     @ResponseBody
     public Result getMunicipiosByEstado(@PathVariable("IdEstado") int IdEstado) {
 
-        Result result = municipioDAOImplementation.GetMunicipiosByEstado(IdEstado);
+        Result result = municipioDAOJPAImplementation.GetMunicipiosByEstado(IdEstado);
         return result;
     }
 
@@ -795,7 +809,7 @@ public class UsuarioController {
     @ResponseBody
     public Result getColoniasByMunicipio(@PathVariable("IdMunicipio") int IdMunicipio) {
 
-        Result result = coloniaDAOImplementation.GetColoniaByMunicipio(IdMunicipio);
+        Result result = coloniaDAOJPAImplementation.GetColoniaByMunicipio(IdMunicipio);
         return result;
     }
 
@@ -804,7 +818,7 @@ public class UsuarioController {
     @ResponseBody
     public Result getDireccionByCP(@PathVariable String codigoPostal) {
 
-        return dirCodigoPostalDAOImplementation.GetDireccionByCodigoPostal(codigoPostal);
+        return dirCodigoPostalDAOJPAImplementation.GetDireccionByCodigoPostal(codigoPostal);
     }
 
 }
